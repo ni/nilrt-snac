@@ -23,6 +23,7 @@ sbindir ?= $(exec_prefix)/sbin
 
 SRC_FILES = \
 	src/configure-nilrt-snac \
+	src/nilrt-snac-conflicts/control \
 	src/nilrt-snac \
 	src/util.sh \
 
@@ -33,23 +34,35 @@ DIST_FILES = \
 	Makefile \
 
 
+
+# REAL TARGETS #
+################
+
+$(PACKAGE)-$(VERSION).tar.gz : $(DIST_FILES)
+	tar -czf $@ $(DIST_FILES)
+
+
+src/nilrt-snac-conflicts/nilrt-snac-conflicts.ipk :
+	make -C src/nilrt-snac-conflicts $(@F)
+
+
 # PHONY TARGETS #
 #################
 
 .PHONY : all clean dist install uninstall
 
-all :
-	@echo "Nothing to build. All source files are architecture-independent."
+all : nilrt-snac-conflicts
 
 
 clean :
 	rm -f ./$(PACKAGE)-*.tar.gz
+	make -C src/nilrt-snac-conflicts clean
 
 
 dist : $(PACKAGE)-$(VERSION).tar.gz
 
 
-install : $(DIST_FILES)
+install : $(DIST_FILES) src/nilrt-snac-conflicts/nilrt-snac-conflicts.ipk
 	mkdir -p $(DESTDIR)$(sbindir)
 	install -o 0 -g 0 --mode=0755 -t "$(DESTDIR)$(sbindir)" \
 		src/nilrt-snac
@@ -64,15 +77,13 @@ install : $(DIST_FILES)
 		LICENSE \
 		README.md
 
+	# install conflicts IPK
+	mkdir -p $(DESTDIR)$(datarootdir)/$(PACKAGE)
+	install --mode=0644 -t "$(DESTDIR)$(datarootdir)/$(PACKAGE)" \
+		src/nilrt-snac-conflicts/nilrt-snac-conflicts.ipk
+
 
 uninstall :
 	rm -vf $(DESTDIR)$(sbindir)/nilrt-snac
 	rm -rvf $(DESTDIR)$(libdir)/$(PACKAGE)
 	rm -rvf $(DESTDIR)$(docdir)/$(PACKAGE)
-
-
-# REAL TARGETS #
-################
-
-$(PACKAGE)-$(VERSION).tar.gz : $(DIST_FILES)
-	tar -czf $@ $(DIST_FILES)

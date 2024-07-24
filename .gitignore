@@ -1,2 +1,4 @@
 # make-generated files
 /nilrt-snac-*.tar.gz
+/src/nilrt-snac-conflicts/*.tar.gz
+/src/nilrt-snac-conflicts/*.ipk

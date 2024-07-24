@@ -3,6 +3,7 @@
 set -euo pipefail
 
 SCRIPT_ROOT="$(realpath $(dirname ${BASH_SOURCE}))"
+PREFIX_ROOT="$(realpath ${SCRIPT_ROOT}/../../)"
 source "${SCRIPT_ROOT}/util.sh"
 
 ## CONSTANTS
@@ -133,6 +134,7 @@ remove_niauth() {
 
 	#sed -i '/Essential: yes/d' /var/lib/opkg/status
 	opkg remove --force-removal-of-essential-packages --force-depends ni-auth
+	opkg install "${PREFIX_ROOT}/share/nilrt-snac/nilrt-snac-conflicts.ipk"
 	passwd -d root
 	log DEBUG root account password deleted.
 
