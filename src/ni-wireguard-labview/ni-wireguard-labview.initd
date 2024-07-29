@@ -1,0 +1,32 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:          ni-wireguard-labview
+# Required-Start:    $network $syslog
+# Required-Stop:     $network $syslog
+# Default-Start:     3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Setup/Teardown a wireguard interface for LabVIEW.
+# Description:       Setup or tear down the wireguard VPN interface used to encrypt LABVIEW communcations in the NILRT SNAC configuration.
+### END INIT INFO
+
+case "$1" in
+	start)
+		wg-quick up wglv0
+		;;
+	stop)
+		wg-quick down wglv0
+		;;
+	restart)
+		$0 stop
+		$0 start
+		;;
+	status)
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart|status}"
+		exit 1
+		;;
+esac
+
+exit 0
