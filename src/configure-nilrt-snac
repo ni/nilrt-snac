@@ -6,6 +6,8 @@ SCRIPT_ROOT="$(realpath $(dirname ${BASH_SOURCE}))"
 source "${SCRIPT_ROOT}/util.sh"
 
 ## CONSTANTS
+FAILLOCK_CONF=/etc/security/faillock.conf
+PAM_CONF=/etc/pam.d/common-auth
 OPKG_CONF=/etc/opkg/snac.conf
 WIREGUARD_TOOLS_DEB='http://ftp.us.debian.org/debian/pool/main/w/wireguard/wireguard-tools_1.0.20210914-1+b1_amd64.deb'
 USBGUARD_SRC_URL="https://github.com/USBGuard/usbguard/releases/download/usbguard-1.1.2/usbguard-1.1.2.tar.gz"
@@ -26,14 +28,14 @@ check_euid_root() {
 # NOTE: The ip_tables kernel module is only loaded once the first call to iptables has been made, (inlcuding rule creation).
 check_iptables() {
 	log INFO Checking iptables configuration...
-	
+
 	log DEBUG Installing iptables...
 	opkg install iptables
 
 	# This call also ensures that the module gets loaded
 	log DEBUG Checking iptables user tools...
 	if ! iptables -L; then
-		echo ERROR iptables binary 
+		echo ERROR iptables binary
 		exit $EX_CHECK_FAILURE
 	fi >/dev/null
 
@@ -81,7 +83,7 @@ configure_opkg() {
 
 	echo "# NILRT SNAC configuration opkg runparts. Do not hand-edit." >"${OPKG_CONF}"
 	echo "option autoremove 1" >>"${OPKG_CONF}"
-	
+
 	log DEBUG Removing unsupported package feeds...
 	rm -fv /etc/opkg/NI-dist.conf
 	# TODO Uncomment this once we have moved all necessary packages into the core feeds.
@@ -127,7 +129,7 @@ install_cryptsetup() {
 # Rips niauth out of the system.
 remove_niauth() {
 	log INFO Removing NIAuth...
-	
+
 	# Manually remove the 'Essential' mark on NI-Auth and its siblings, so that they can be removed.
 	#trap "opkg update >/dev/null" EXIT
 
@@ -138,6 +140,26 @@ remove_niauth() {
 
 	#opkg update >/dev/null  # undoes the remarking we just did
 	trap - EXIT
+}
+
+# Install and configure pam-plugin-faillock.
+# Any non-root account will get locked after 3 failed authentications within 15 minutes.
+configure_faillock() {
+	log INFO Configuring faillock...
+
+	log DEBUG Installing pam-plugin-faillock...
+	opkg install pam-plugin-faillock
+
+	log DEBUG Configuring faillock settings...
+	sed -i 's/^# audit$/audit/' "${FAILLOCK_CONF}"
+	sed -i 's/^# silent$/silent/' "${FAILLOCK_CONF}"
+	sed -i 's/^# deny = 3$/deny = 3/' "${FAILLOCK_CONF}"
+	sed -i 's/^# fail_interval = 900$/fail_interval = 900/' "${FAILLOCK_CONF}"
+	sed -i 's/^# unlock_time = 600$/unlock_time = 0/' "${FAILLOCK_CONF}"
+
+	log DEBUG Enabling faillock...
+	sed -E -i 's/^(.+)success=1(.+)$/auth    requisite pam_faillock.so preauth\n\1success=2\2\nauth    [default=die] pam_faillock.so authfail/' "${PAM_CONF}"
+	echo "auth    sufficient pam_faillock.so authsucc" >>"${PAM_CONF}"
 }
 
 
@@ -175,6 +197,8 @@ opkg remove '*xfce4*-locale-ja*'  # where do these come from !?!
 install_cryptsetup
 
 configure_ntp
+
+configure_faillock
 
 syslog notice SNAC configuration completed.
 exit 0
