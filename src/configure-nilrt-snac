@@ -27,14 +27,14 @@ check_euid_root() {
 # NOTE: The ip_tables kernel module is only loaded once the first call to iptables has been made, (inlcuding rule creation).
 check_iptables() {
 	log INFO Checking iptables configuration...
-	
+
 	log DEBUG Installing iptables...
 	opkg install iptables
 
 	# This call also ensures that the module gets loaded
 	log DEBUG Checking iptables user tools...
 	if ! iptables -L; then
-		echo ERROR iptables binary 
+		echo ERROR iptables binary
 		exit $EX_CHECK_FAILURE
 	fi >/dev/null
 
@@ -82,7 +82,7 @@ configure_opkg() {
 
 	echo "# NILRT SNAC configuration opkg runparts. Do not hand-edit." >"${OPKG_CONF}"
 	echo "option autoremove 1" >>"${OPKG_CONF}"
-	
+
 	log DEBUG Removing unsupported package feeds...
 	rm -fv /etc/opkg/NI-dist.conf
 	# TODO Uncomment this once we have moved all necessary packages into the core feeds.
@@ -158,7 +158,7 @@ install_cryptsetup() {
 # Rips niauth out of the system.
 remove_niauth() {
 	log INFO Removing NIAuth...
-	
+
 	# Manually remove the 'Essential' mark on NI-Auth and its siblings, so that they can be removed.
 	#trap "opkg update >/dev/null" EXIT
 
@@ -201,6 +201,15 @@ EOF
 	set -e
 }
 
+# Install and configure pam-plugin-faillock.
+# Any non-root account will get locked after 3 failed authentications within 15 minutes.
+configure_faillock() {
+	log INFO Configuring faillock...
+
+	log DEBUG Installing pam-plugin-faillock...
+	opkg install pam-plugin-faillock
+}
+
 
 ## MAIN
 # runtime environment safety checks
@@ -240,6 +249,8 @@ configure_ntp
 enable_pwquality
 
 disable_wifi
+
+configure_faillock
 
 syslog notice SNAC configuration completed.
 exit 0
