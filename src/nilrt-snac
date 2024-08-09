@@ -89,7 +89,8 @@ command=${positionals[0]}
 cmd_configure() {
 	echo WARNING '!! THIS TOOL IS IN-DEVELOPMENT AND APPROPRIATE ONLY FOR DEVELOPER TESTING !!'
 	echo WARNING '!! Running this tool will irreversibly alter the state of your system.    !!'
-
+	echo WARNING '!! If you are accessing your system using WiFi, you will lose connection. !!'
+	
 	# prompt for consent
 	local consent=false
 	if $yes; then

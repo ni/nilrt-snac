@@ -140,6 +140,18 @@ remove_niauth() {
 	trap - EXIT
 }
 
+disable_wifi() {
+	log INFO Disabling WiFi...
+	cat <<EOT >/etc/modprobe.d/snac_blacklist.conf
+# Do not allow WiFi connections
+# We cannot use the blacklist keyword because they will still be loaded
+# when another module depends on them. This will prevent the modules from
+# being loaded along with any modules that depends on them.
+install cfg80211 /bin/true
+install mac80211 /bin/true
+EOT
+}
+
 
 ## MAIN
 # runtime environment safety checks
@@ -175,6 +187,8 @@ opkg remove '*xfce4*-locale-ja*'  # where do these come from !?!
 install_cryptsetup
 
 configure_ntp
+
+disable_wifi
 
 syslog notice SNAC configuration completed.
 exit 0
