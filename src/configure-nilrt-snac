@@ -150,6 +150,10 @@ disable_wifi() {
 install cfg80211 /bin/true
 install mac80211 /bin/true
 EOT
+
+	# unload the modules if they are already loaded
+	# This will most likely error so send the output to /dev/null
+	rmmod cfg80211 mac80211 >/dev/null 2>&1
 }
 
 
