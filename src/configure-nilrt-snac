@@ -141,6 +141,29 @@ remove_niauth() {
 }
 
 
+configure_tmux() {
+	log INFO Configuring tmux to be the default shell for both SSH and local
+	log INFO    logins, with a timeout...
+	opkg update >/dev/null && opkg install tmux
+
+	cat <<EOF >/etc/tmux.conf
+# NILRT SNAC configuration tmux.conf. Do not hand-edit.
+
+set -g lock-command vlock
+set -g lock-after-time 900
+EOF
+
+	cat <<EOF >/etc/profile.d/tmux.sh
+# NILRT SNAC configuration tmux.sh. Do not hand-edit.
+
+if [ "$PS1" ]; then
+  parent=$(ps -o ppid= -p $$)
+  name=$(ps -o comm= -p $parent)
+  case "$name" in (sshd|login) exec tmux ;; esac
+fi
+EOF
+}
+
 ## MAIN
 # runtime environment safety checks
 check_euid_root
@@ -175,6 +198,8 @@ opkg remove '*xfce4*-locale-ja*'  # where do these come from !?!
 install_cryptsetup
 
 configure_ntp
+
+configure_tmux
 
 syslog notice SNAC configuration completed.
 exit 0
