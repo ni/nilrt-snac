@@ -156,10 +156,10 @@ EOF
 	cat <<EOF >/etc/profile.d/tmux.sh
 # NILRT SNAC configuration tmux.sh. Do not hand-edit.
 
-if [ "$PS1" ]; then
-  parent=$(ps -o ppid= -p $$)
-  name=$(ps -o comm= -p $parent)
-  case "$name" in (sshd|login) exec tmux ;; esac
+if [ "\$PS1" ]; then
+  parent=\$(ps -o ppid= -p \$\$)
+  name=\$(ps -o comm= -p \$parent)
+  case "\$name" in (sshd|login) exec tmux ;; esac
 fi
 EOF
 }
