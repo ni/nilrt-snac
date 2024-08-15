@@ -1,0 +1,20 @@
+name: PR Check Commit Policies
+
+on: [pull_request]
+
+jobs:
+  check-signed-off:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history to ensure we can compare with the base branch
+        ref: ${{ github.event.pull_request.head.sha }}  # checkout the PR HEAD, instead of a merge commit
+
+    - name: Verify commit sign-offs
+      run: |
+        export REMOTE=origin
+        export BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+        bash .github/workflows/check_signoffs.sh
