@@ -15,4 +15,7 @@ TODO: Detail what testing has been done to ensure this submission meets requirem
 
 ### Procedure
 
+TODO: Check applicable tasks and remove those that are inapplicable.
+
+* [ ] This PR: changes user-visible behavior, fixes a bug, or impacts the project's security profile; and so it includes a [CHANGELOG](https://github.com/ni/nilrt-snac/blob/master/docs/CHANGELOG.md) note.
 * [ ] I certify that the contents of this pull request complies with the [Developer Certificate of Origin](https://github.com/ni/nilrt-snac/blob/master/docs/CONTRIBUTING.md).
