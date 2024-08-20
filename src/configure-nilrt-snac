@@ -172,6 +172,17 @@ remove_niauth() {
 	trap - EXIT
 }
 
+enable_pwquality() {
+	log INFO Enabling password quality checks...
+	log INFO Enabling password history...
+	sed -i 's/^\(password.*pam_unix.so.*\)$/\1 remember=5/' /etc/pam.d/common-password
+	log INFO Enabling password complexity using libpwquality...
+	cat <<-EOF >>/etc/pam.d/common-password
+		# Additional check for password complexity
+		password	requisite	pam_pwquality.so retry=3
+	EOF
+}
+
 disable_wifi() {
 	log INFO Disabling WiFi...
 	cat <<EOF >/etc/modprobe.d/snac_blacklist.conf
@@ -223,6 +234,8 @@ opkg remove '*xfce4*-locale-ja*'  # where do these come from !?!
 install_cryptsetup
 
 configure_ntp
+
+enable_pwquality
 
 disable_wifi
 
