@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * The `configure` operation now disables WIFI interfaces. (#2)
 * The `configure` operation now installs a `nilrt-snac-conflicts` meta-package, so that the tool can forbid re-installation of non-compliant packages. (#5)
+* The `configure` operation now installs `libpwquality` and enables password quality checks. (#11)
 
 ### Changed
 
