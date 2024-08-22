@@ -1,2 +1,7 @@
 # default
 * @ni/rnd-security @amstewart @AlexHearnNI
+
+# project meta data and maintainership
+.github/* @amstewart @AlexHearnNI
+docs/* @amstewart @AlexHearnNI
+LICENSE @amstewart @AlexHearnNI
