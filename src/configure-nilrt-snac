@@ -185,7 +185,9 @@ EOF
 
 	# unload the modules if they are already loaded
 	# This will most likely error so send the output to /dev/null
+	set +e
 	rmmod cfg80211 mac80211 >/dev/null 2>&1
+	set -e
 }
 
 
