@@ -8,6 +8,7 @@ from nilrt_snac._configs._niauth_config import _NIAuthConfig
 from nilrt_snac._configs._ntp_config import _NTPConfig
 from nilrt_snac._configs._opkg_config import _OPKGConfig
 from nilrt_snac._configs._pwquality_config import _PWQualityConfig
+from nilrt_snac._configs._tmux_config import _TmuxConfig
 from nilrt_snac._configs._wifi_config import _WIFIConfig
 from nilrt_snac._configs._wireguard_config import _WireguardConfig
 from nilrt_snac._configs._x11_config import _X11Config
@@ -25,5 +26,6 @@ CONFIGS: List[_BaseConfig] = [
     _FaillockConfig(),
     _X11Config(),
     _ConsoleConfig(),
+    _TmuxConfig(),
     _PWQualityConfig(),
 ]
