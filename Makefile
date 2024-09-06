@@ -54,7 +54,7 @@ src/nilrt-snac-conflicts/nilrt-snac-conflicts.ipk :
 
 .PHONY : all clean dist install uninstall
 
-all : nilrt-snac-conflicts
+all : src/nilrt-snac-conflicts/nilrt-snac-conflicts.ipk
 
 
 clean :
@@ -65,7 +65,7 @@ clean :
 dist : $(PACKAGE)-$(VERSION).tar.gz
 
 
-install : $(DIST_FILES) src/nilrt-snac-conflicts/nilrt-snac-conflicts.ipk
+install : all $(DIST_FILES)
 	mkdir -p $(DESTDIR)$(sbindir)
 	install -o 0 -g 0 --mode=0755 -t "$(DESTDIR)$(sbindir)" \
 		src/nilrt-snac
