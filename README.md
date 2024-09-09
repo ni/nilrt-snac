@@ -15,7 +15,6 @@ This tool...
 * requires a network connection to the internet.
 * requires access to the core NILRT package feeds.
 * can only be run as root.
-* has no external library dependencies.
 * installs some open source projects at runtime which are not officially supported by NI.
 	* wireguard-tools (from the debian package feeds)
 	* USBGuard (from its canonical upstream GH repo)
@@ -23,13 +22,33 @@ This tool...
 
 # Installation
 
-## Installation Dependencies
 
-* `make`
+## Installation from the NILRT IPK Feeds
+
+On NILRT Base System Images 11.0 (2025Q1) and later, this project can be installed directly from the vendor's packaging.
+
+This is the preferred method of installation for users.
+
+```bash
+opkg update && \
+	opkg install nilrt-snac
+```
+
+
+### Uninstallation
+
+```bash
+opkg remove nilrt-snac
+```
+
 
 ## Installation From Source
 
-On a deployed NILRT system, in runmode...
+Install this project's build dependencies.
+
+* `make`
+
+Then build the project.
 
 ```bash
 mkdir -p /usr/local/src
@@ -45,24 +64,37 @@ cd /usr/local/src/nilrt-snac
 make uninstall sysconfdir=/etc
 ```
 
-## Installation from the NILRT IPK Feeds
-
-*WORK IN PROGRESS*
-
 
 # Usage
 
 ## Runtime Dependencies
 
 * `bash`
-* `util-linux.logger`
+* `python3`
+
 
 ## CLI
 
 After installation, the tool should be available in your PATH.
+
+The tool has two primary modes of operation: `configure` and `verify`.
+
+
+### Configure
+
+In 'configure' mode, the tool will **apply** the SNAC configuration to the NILRT system. This is a destructive operation that should only be run by a system maintainer during deployment.
 
 ```bash
 nilrt-snac configure
 ```
 
 After the script completes successfully, you will be instructed to reboot your system. Reboot into runmode and login using `root` with no password.
+
+
+### Verify
+
+In 'verify' mode, the tool will **check** that the NILRT system is in the SNAC configuration, without modifying the system state. The operation will fail if any of the checks fail.
+
+```bash
+nilrt-snac verify
+```
