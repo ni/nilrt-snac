@@ -6,21 +6,21 @@ SHELL = /bin/sh
 
 ## VARIABLES
 
-PACKAGE = nilrt-snac
-VERSION := $(shell git describe)
+export PACKAGE = nilrt-snac
+export VERSION := $(shell git describe)
 
 # GNU directories
-prefix ?= /usr/local
-exec_prefix ?= $(prefix)
-bindir ?= $(exec_prefix)/bin
+export prefix ?= /usr/local
+export exec_prefix ?= $(prefix)
+export bindir ?= $(exec_prefix)/bin
 
-datarootdir ?= $(prefix)/share
+export datarootdir ?= $(prefix)/share
 
-datadir ?= $(datarootdir)
-docdir ?= $(datarootdir)/doc
-libdir ?= $(exec_prefix)/lib
-sbindir ?= $(exec_prefix)/sbin
-sysconfdir ?= $(prefix)/etc
+export datadir ?= $(datarootdir)
+export docdir ?= $(datarootdir)/doc
+export libdir ?= $(exec_prefix)/lib
+export sbindir ?= $(exec_prefix)/sbin
+export sysconfdir ?= $(prefix)/etc
 
 PYTHON_FILES = \
 	$(shell find nilrt_snac -name \*.py -or -name \*.txt)
