@@ -37,6 +37,7 @@ def _configure(args: argparse.Namespace) -> int:
         return Errors.EX_OK
 
     print("Configuring SNAC mode.")
+    opkg_helper.update()
     for config in CONFIGS:
         config.configure(args)
 
