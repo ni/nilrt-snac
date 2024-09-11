@@ -13,7 +13,7 @@ from nilrt_snac._configs import CONFIGS
 from nilrt_snac import Errors, logger, SNACError, __version__
 
 VERSION_DESCRIPTION = \
-f"""
+f"""\
 nilrt-snac {__version__}
 Copyright (C) 2024 NI (Emerson Electric)
 License MIT: MIT License <https://spdx.org/licenses/MIT.html>
