@@ -2,14 +2,14 @@
 
 .DEFAULT_GOAL := all
 
-SHELL = /bin/sh
 
-## VARIABLES
+# PROJECT VARIABLES #
 
 export PACKAGE = nilrt-snac
 export VERSION := $(shell git describe)
 
-# GNU directories
+# INSTALL PATHS #
+
 export prefix ?= /usr/local
 export exec_prefix ?= $(prefix)
 export bindir ?= $(exec_prefix)/bin
@@ -22,8 +22,19 @@ export libdir ?= $(exec_prefix)/lib
 export sbindir ?= $(exec_prefix)/sbin
 export sysconfdir ?= $(prefix)/etc
 
+# BINARIES #
+
+export PYTHON ?= python3
+export PYTEST ?= $(PYTHON) -m pytest
+export SHELL ?= /bin/sh
+
+# FILES #
+
 PYNILRT_SNAC_FILES = \
 	$(shell find nilrt_snac -name \*.py -or -name \*.txt)
+
+TEST_FILES = \
+	$(shell find tests/ -type f | git check-ignore -vn --stdin | cut -f2)
 
 SRC_FILES = \
 	src/nilrt-snac-conflicts/control \
@@ -54,7 +65,7 @@ src/nilrt-snac-conflicts/nilrt-snac-conflicts.ipk :
 # PHONY TARGETS #
 #################
 
-.PHONY : all clean dist install mkinstalldirs uninstall
+.PHONY : all clean dist install installcheck mkinstalldirs uninstall
 
 all : src/nilrt-snac-conflicts/nilrt-snac-conflicts.ipk
 
@@ -92,6 +103,15 @@ install : all mkinstalldirs $(DIST_FILES)
 	for pyfile in $(PYNILRT_SNAC_FILES); do \
 		install -D "$${pyfile}" "$(DESTDIR)$(libdir)/$(PACKAGE)/$${pyfile}"; \
 	done
+
+	# integration tests
+	for file in $(TEST_FILES); do \
+		install -D "$${file}" "$(DESTDIR)$(libdir)/$(PACKAGE)/$${file}"; \
+	done
+
+
+installcheck :
+	$(PYTEST) -v "$(realpath $(DESTDIR)$(libdir)/$(PACKAGE)/tests/integration)"
 
 
 mkinstalldirs :
