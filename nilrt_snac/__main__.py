@@ -12,6 +12,7 @@ from nilrt_snac._configs import CONFIGS
 
 from nilrt_snac import Errors, logger, SNACError, __version__
 
+PROG_NAME = "nilrt-snac"
 VERSION_DESCRIPTION = \
 f"""\
 nilrt-snac {__version__}
@@ -62,7 +63,10 @@ def _verify(args: argparse.Namespace) -> int:
 
 def _parse_args(argv: List[str]) -> argparse.Namespace:
     """Top level entry point for the command line interface."""
-    parser = argparse.ArgumentParser(description="Utility for enabling SNAC mode on NI Linux RT.")
+    parser = argparse.ArgumentParser(
+        description="Utility for enabling SNAC mode on NI Linux RT.",
+        prog=PROG_NAME,
+    )
 
     subparsers = parser.add_subparsers(help="Commands for SNAC mode.", dest="cmd")
     subparsers.required = False
