@@ -3,7 +3,7 @@ import pathlib
 import subprocess
 
 from nilrt_snac._common import get_distro
-from nilrt_snac.OpkgHelper import opkg_helper
+from nilrt_snac.opkg import opkg_helper
 
 from nilrt_snac import Errors, SNACError, logger
 

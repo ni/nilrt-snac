@@ -6,7 +6,7 @@ import sys
 from typing import List, Optional
 
 from nilrt_snac._pre_reqs import verify_prereqs
-from nilrt_snac.OpkgHelper import opkg_helper
+from nilrt_snac.opkg import opkg_helper
 from nilrt_snac._configs import CONFIGS
 
 
