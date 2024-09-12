@@ -131,5 +131,5 @@ uninstall :
 
 	# files
 	rm -vf "$(DESTDIR)$(sysconfdir)/init.d/ni-wireguard-labview"
-	rm -vf "$(DESTDIR)$(sysconfdir)/wireguard/wglv0.*"
+	rm -vf "$(DESTDIR)$(sysconfdir)/wireguard"/wglv0.*
 	rm -vf "$(DESTDIR)$(sbindir)/nilrt-snac"
