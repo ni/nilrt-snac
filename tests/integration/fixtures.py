@@ -1,7 +1,5 @@
 from pathlib import Path
-import shutil
 import subprocess as sp
-
 
 import pytest
 
@@ -9,7 +7,7 @@ import pytest
 class NILRT_SNAC_CLI():
 
     def __init__(self):
-        self.bin_path = Path(shutil.which("nilrt-snac")).resolve()
+        self.bin_path = Path(__file__).resolve().parents[4] / "sbin" / "nilrt-snac"
         print(f"bin_path={self.bin_path}")
 
     def run(self, argv: list | str, **kwargs):
