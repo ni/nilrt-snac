@@ -43,7 +43,7 @@ class _WIFIConfig(_BaseConfig):
         if not config_file.exists():
             valid = False
             logger.error(f"MISSING: {config_file.path} not found")
-        if not config_file.contains("install cfg80211 /bin/true"):
+        elif not config_file.contains("install cfg80211 /bin/true"):
             valid = False
             logger.error("MISSING: commands to fail install of WiFi modules")
         return valid

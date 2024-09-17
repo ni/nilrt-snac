@@ -50,7 +50,7 @@ class _OPKGConfig(_BaseConfig):
         if not snac_config_file.exists():
             valid = False
             logger.error(f"MISSING: {OPKG_SNAC_CONF} not found")
-        if not snac_config_file.contains("option autoremove 1"):
+        elif not snac_config_file.contains("option autoremove 1"):
             valid = False
             logger.error(
                 f"MISSING: 'option autoremove 1' not found in {snac_config_file.path}"
