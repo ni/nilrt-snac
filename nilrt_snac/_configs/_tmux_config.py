@@ -15,7 +15,9 @@ class _TmuxConfig(_BaseConfig):
     def configure(self, args: argparse.Namespace) -> None:
         print("Configuring tmux...")
         snac_config_file = _ConfigFile("/usr/share/tmux/conf.d/snac.conf")
+        snac_config_file.chmod(0o644)
         profile_file = _ConfigFile("/etc/profile.d/tmux.sh")
+        profile_file.chmod(0o644)
         dry_run: bool = args.dry_run
         self._opkg_helper.install("tmux")
 
