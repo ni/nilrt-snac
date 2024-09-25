@@ -4,6 +4,7 @@ from nilrt_snac._configs._base_config import _BaseConfig
 from nilrt_snac._configs._console_config import _ConsoleConfig
 from nilrt_snac._configs._cryptsetup_config import _CryptSetupConfig
 from nilrt_snac._configs._faillock_config import _FaillockConfig
+from nilrt_snac._configs._firewall_config import _FirewallConfig
 from nilrt_snac._configs._niauth_config import _NIAuthConfig
 from nilrt_snac._configs._ntp_config import _NTPConfig
 from nilrt_snac._configs._opkg_config import _OPKGConfig
@@ -30,4 +31,5 @@ CONFIGS: List[_BaseConfig] = [
     _TmuxConfig(),
     _PWQualityConfig(),
     _SudoConfig(),
+    _FirewallConfig(),
 ]
