@@ -108,6 +108,16 @@ log_testcmd_xfail () {
 	log_testcmp 1 $result
 }
 
+log_testcmd_exitcode () {
+	log_testcase "$1"
+	shift
+	local expected="$1"
+	shift
+	local result=0
+	eval time "$@" || result=$?
+	log_testcmp $expected $result
+}
+
 log_section "Reading local secondary IP addresses"
 
 while read -r proto scope addr prefix; do
@@ -411,3 +421,22 @@ log_testcmd "local to remote UDP6 port 12345, unblocked" \
 	    test_localtoremote UDP6 12345 \
 	    [$REMOTE_SECONDARY_IP6_ADDR_LOCAL] [$REMOTE_SECONDARY_IP6_ADDR_REMOTE]
 do_ssh "firewall-cmd --policy=public-in --remove-port=12345/udp"
+
+test_nofirewall () {
+	do_ssh "/etc/init.d/firewalld stop"
+	trap "do_ssh '/etc/init.d/firewalld start'" RETURN
+	log_testcmd_exitcode do_ssh 252 "firewall-cmd --state"
+
+	log_testcmd "remote to local TCP4 port 12345, blocked, firewalld not running" \
+		test_remotetolocal TCP4 12345 \
+		$LOCAL_SECONDARY_IP4_ADDR $LOCAL_SECONDARY_IP4_ADDR
+	do_ssh "/etc/init.d/firewalld start"
+	trap - RETURN
+}
+test_nofirewall
+
+do_ssh "firewall-cmd --permanent --policy=public-out --set-target=ACCEPT && firewall-cmd --reload"
+log_testcmd "remote to local TCP4 port 12345, blocked, firewalld not running" \
+	test_remotetolocal TCP4 12345 \
+	$LOCAL_SECONDARY_IP4_ADDR $LOCAL_SECONDARY_IP4_ADDR
+do_ssh "firewall-cmd --permanent --policy=public-out --set-target=REJECT && firewall-cmd --reload"
