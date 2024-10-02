@@ -54,7 +54,6 @@ class _FirewallConfig(_BaseConfig):
                     "--add-service=ssh",
                     "--add-service=mdns",
                     )
-        _offlinecmd("--policy=work-in", "--set-target=REJECT")
 
         _offlinecmd("--new-policy=work-out")
         _offlinecmd("--policy=work-out", "--add-ingress-zone=HOST")
@@ -75,7 +74,6 @@ class _FirewallConfig(_BaseConfig):
                     "--add-service=ssh",
                     "--add-service=wireguard",
                     )
-        _offlinecmd("--policy=public-in", "--set-target=REJECT")
 
         _offlinecmd("--new-policy=public-out")
         _offlinecmd("--policy=public-out", "--add-ingress-zone=HOST")
