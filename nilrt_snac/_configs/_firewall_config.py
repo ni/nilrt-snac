@@ -65,6 +65,21 @@ class _FirewallConfig(_BaseConfig):
                     "--add-service=https",
                     )
         _offlinecmd("--policy=work-out", "--set-target=REJECT")
+        # Note that quotes around the rule are required when literally typing
+        # this on the command line, but are forbidden here. This is because
+        # firewall-cmd croaks on them:
+        #
+        # Warning: INVALID_RULE: internal error in _lexer(): rule family="ipv6"
+        # icmp-type name="neighbour-advertisement" accept
+        #
+        # The quotes are removed by the shell, while Subprocess passes these
+        # arguments through verbatim.
+        _offlinecmd("--policy=work-out",
+                    "--add-rich-rule=rule family=ipv6 icmp-type name=neighbour-advertisement accept",
+                    "--add-rich-rule=rule family=ipv6 icmp-type name=neighbour-solicitation accept",
+                    "--add-rich-rule=rule family=ipv6 icmp-type name=echo-request accept",
+                    "--add-rich-rule=rule family=ipv6 icmp-type name=echo-reply accept",
+                    )
 
         _offlinecmd("--new-policy=public-in")
         _offlinecmd("--policy=public-in", "--add-ingress-zone=public")
@@ -88,6 +103,17 @@ class _FirewallConfig(_BaseConfig):
                     "--add-service=dns",
                     )
         _offlinecmd("--policy=public-out", "--set-target=REJECT")
+        _offlinecmd("--policy=public-out",
+                    "--add-rich-rule=rule family=ipv6 icmp-type name=neighbour-advertisement accept",
+                    "--add-rich-rule=rule family=ipv6 icmp-type name=neighbour-solicitation accept",
+                    "--add-rich-rule=rule family=ipv6 icmp-type name=echo-request accept",
+                    "--add-rich-rule=rule family=ipv6 icmp-type name=echo-reply accept",
+                    )
+
+        _offlinecmd("--policy=allow-host-ipv6",
+                    "--add-rich-rule=rule family=ipv6 icmp-type name=echo-request accept",
+                    "--add-rich-rule=rule family=ipv6 icmp-type name=echo-reply accept",
+                    )
 
         _cmd("--reload")
 
