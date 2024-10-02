@@ -344,6 +344,8 @@ test_localtoremote () {
 	[[ $val == $EXPECTED ]]
 }
 
+log_testcmd "firewalld is running" do_ssh "firewall-cmd --state"
+
 log_testcmd_xfail "remote to local TCP4 port 12345, blocked" \
 	    test_remotetolocal TCP4 12345 \
 	    $LOCAL_SECONDARY_IP4_ADDR $LOCAL_SECONDARY_IP4_ADDR
