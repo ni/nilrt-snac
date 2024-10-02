@@ -21,12 +21,13 @@ class _PWQualityConfig(_BaseConfig):
         if not config_file.contains("remember=5"):
             config_file.update(r"(password.*pam_unix.so.*)", r"\1 remember=5")
         if not config_file.contains("password.*requisite.*pam_pwquality.so.*retry=3"):
-            config_file.add(
+            config_file.update(
+                r"(.*here are the per-package modules.*)",
                 textwrap.dedent(
-                    """
-                    # Additional check for password complexity
+                    r"""
+                    # check for password complexity
                     password	requisite	pam_pwquality.so retry=3
-                    """
+                    \1"""
                 )
             )
 
