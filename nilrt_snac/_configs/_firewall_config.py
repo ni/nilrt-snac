@@ -49,33 +49,42 @@ class _FirewallConfig(_BaseConfig):
         _offlinecmd("--new-policy=work-in")
         _offlinecmd("--policy=work-in", "--add-ingress-zone=work")
         _offlinecmd("--policy=work-in", "--add-egress-zone=HOST")
-        _offlinecmd("--policy=work-in", "--add-service=ssh", "--add-service=mdns")
+        _offlinecmd("--policy=work-in",
+                    "--add-service=ssh",
+                    "--add-service=mdns",
+                    )
         _offlinecmd("--policy=work-in", "--set-target=REJECT")
 
         _offlinecmd("--new-policy=work-out")
         _offlinecmd("--policy=work-out", "--add-ingress-zone=HOST")
         _offlinecmd("--policy=work-out", "--add-egress-zone=work")
-        _offlinecmd("--policy=work-out", "--add-service=ssh",
-                        "--add-service=http",
-                        "--add-service=https")
+        _offlinecmd("--policy=work-out",
+                    "--add-service=ssh",
+                    "--add-service=http",
+                    "--add-service=https",
+                    )
         _offlinecmd("--policy=work-out", "--set-target=REJECT")
 
         _offlinecmd("--new-policy=public-in")
         _offlinecmd("--policy=public-in", "--add-ingress-zone=public")
         _offlinecmd("--policy=public-in", "--add-egress-zone=HOST")
-        _offlinecmd("--policy=public-in", "--add-service=ssh",
-                        "--add-service=wireguard")
+        _offlinecmd("--policy=public-in",
+                    "--add-service=ssh",
+                    "--add-service=wireguard",
+                    )
         _offlinecmd("--policy=public-in", "--set-target=REJECT")
 
         _offlinecmd("--new-policy=public-out")
         _offlinecmd("--policy=public-out", "--add-ingress-zone=HOST")
         _offlinecmd("--policy=public-out", "--add-egress-zone=public")
-        _offlinecmd("--policy=public-out",  "--add-service=dhcp",
-                        "--add-service=dhcpv6",
-                        "--add-service=http",
-                        "--add-service=https",
-                        "--add-service=wireguard",
-                        "--add-service=dns")
+        _offlinecmd("--policy=public-out",
+                    "--add-service=dhcp",
+                    "--add-service=dhcpv6",
+                    "--add-service=http",
+                    "--add-service=https",
+                    "--add-service=wireguard",
+                    "--add-service=dns",
+                    )
         _offlinecmd("--policy=public-out", "--set-target=REJECT")
 
         _cmd("--reload")
