@@ -39,7 +39,7 @@ do_ssh () {
 init_ssh () {
 	do_ssh -MNn -- &
 	SSH_PID=$!
-	trap "do_ssh -O exit -- " EXIT #  kill $SSH_PID" EXIT
+	trap "do_ssh -O exit -- ; firewall-cmd --reload" EXIT
 }
 
 
