@@ -23,6 +23,13 @@ class _NIAuthConfig(_BaseConfig):
             logger.debug("Removing root password")
             subprocess.run(["passwd", "-d", "root"], check=True)
 
+        subprocess.run(["sed",
+                        "-i",
+                        "-e",
+                        "/Log in with your NI-Auth credentials\./d",
+                        "/etc/issue",
+                        "/etc/issue.net"])
+
     def verify(self, args: argparse.Namespace) -> bool:
         print("Verifying NIAuth...")
         valid = True
