@@ -133,8 +133,8 @@ class _FirewallConfig(_BaseConfig):
             logger.error(f"MISSING: firewall-cmd")
             valid = False
 
-        valid = _check_target("work-in") and valid
+        valid = _check_target("work-in", "CONTINUE") and valid
         valid = _check_target("work-out") and valid
-        valid = _check_target("public-in") and valid
+        valid = _check_target("public-in", "CONTINUE") and valid
         valid = _check_target("public-out") and valid
         return valid
