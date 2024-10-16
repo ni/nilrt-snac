@@ -3,7 +3,7 @@ from subprocess import CompletedProcess
 import re
 
 from nilrt_snac import __version__
-from tests.integration.fixtures import nilrt_snac_cli
+from .fixtures import nilrt_snac_cli
 
 
 def test_help(nilrt_snac_cli):
