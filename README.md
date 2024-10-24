@@ -16,7 +16,6 @@ This tool...
 * requires access to the core NILRT package feeds.
 * can only be run as root.
 * installs some open source projects at runtime which are not officially supported by NI.
-	* wireguard-tools (from the debian package feeds)
 	* USBGuard (from its canonical upstream GH repo)
 
 

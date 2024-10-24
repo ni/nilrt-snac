@@ -9,8 +9,6 @@ from nilrt_snac._configs._config_file import _ConfigFile
 from nilrt_snac import logger
 from nilrt_snac.opkg import OPKG_SNAC_CONF, opkg_helper
 
-WIREGUARD_TOOLS_DEB = "http://ftp.us.debian.org/debian/pool/main/w/wireguard/wireguard-tools_1.0.20210914-1+b1_amd64.deb"
-
 
 class _WireguardConfig(_BaseConfig):
     def __init__(self):
@@ -25,13 +23,8 @@ class _WireguardConfig(_BaseConfig):
         opkg_conf = _ConfigFile(OPKG_SNAC_CONF)
         ifplug_conf = _ConfigFile("/etc/ifplugd/ifplugd.conf")
         dry_run: bool = args.dry_run
-        subprocess.run(["wget", WIREGUARD_TOOLS_DEB, "-O", "./wireguard-tools.deb"], check=True)
-        if not opkg_conf.contains("arch amd64 15"):
-            opkg_conf.add("arch amd64 15\n")
-            # We need to save the file before installing the package so that amd64 is
-            # a valid architecture
-            opkg_conf.save(dry_run)
-        self._opkg_helper.install("./wireguard-tools.deb", force_reinstall=True)
+
+        self._opkg_helper.install("wireguard-tools", force_reinstall=True)
 
         if not ifplug_conf.contains("^ARGS_wglv0.*"):
             ifplug_conf.add(
