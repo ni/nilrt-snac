@@ -14,10 +14,13 @@ class _PWQualityConfig(_BaseConfig):
 
     def configure(self, args: argparse.Namespace) -> None:
         print("Configuring Password quality...")
+        opasswd_file = _ConfigFile("/etc/security/opasswd") # contains password history
         config_file = _ConfigFile("/etc/pam.d/common-password")
         dry_run: bool = args.dry_run
         self._opkg_helper.install("libpwquality")
 
+        if not opasswd_file.exists():
+            opasswd_file.save(dry_run)
         if not config_file.contains("remember=5"):
             config_file.update(r"(password.*pam_unix.so.*)", r"\1 remember=5")
         if not config_file.contains("password.*requisite.*pam_pwquality.so.*retry=3"):
