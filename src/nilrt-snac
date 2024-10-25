@@ -5,4 +5,5 @@ export SCRIPTPATH=$(dirname $0)
 pushd ${SCRIPTPATH} > /dev/null
 export PYTHONSCRIPTPATH=$(realpath ../lib/nilrt-snac)
 popd > /dev/null
-PYTHONPATH=${PYTHONPATH}:${PYTHONSCRIPTPATH} python3 -m nilrt_snac $@
+
+PYTHONPATH=${PYTHONSCRIPTPATH}:${PYTHONPATH} python3 -P -m nilrt_snac $@
