@@ -16,7 +16,7 @@ pool:
   name: Drivers-NIBuildFarm-RFMIBUILD
 
 stages:
-- stage: Prepare-Build
+- stage: PrepareBuild
   jobs:
   - job: BuildInformation
     steps:
