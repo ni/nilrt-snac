@@ -1,0 +1,39 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  paths:
+    exclude:
+    - .github/*
+    - .vs/*
+  branches:
+    include:
+    - master
+
+pool: 
+  name: Drivers-NIBuildFarm-RFMIBUILD
+
+stages:
+- stage: Prepare-Build
+  jobs:
+  - job: BuildInformation
+    steps:
+    - powershell: |
+        echo "Hello, world!"
+        echo "Build number: $(Build.BuildNumber)" 
+        echo "Build ID: $(Build.BuildID)" 
+        echo "Build Reason: $(Build.Reason)"
+        $editedFiles = git diff HEAD HEAD~ --name-only
+        Write-Host "Files changed: "  -ForegroundColor Darkblue -BackgroundColor yellow
+- stage: UnitTest
+  jobs:
+  - job: UnitTestforPython
+    continueOnError: false
+    steps:
+    - script: |
+          echo "Simulate UnitTest On Python Modules"
+      displayName: SimulateUnitTestOnPython
+      condition: succeeded()
+
