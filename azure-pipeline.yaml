@@ -25,7 +25,9 @@ stages:
         echo "Build number: $(Build.BuildNumber)" 
         echo "Build ID: $(Build.BuildID)" 
         echo "Build Reason: $(Build.Reason)"
-        $currentBranch = "$(System.PullRequest.SourceBranch)"
+        echo "Build SourceBranch: $(Build.SourceBranch)"
+        echo "Build SourceBranchName: $(Build.SourceBranchName)"
+        $currentBranch = "$(Build.SourceBranchName)"
         $editedFiles = git diff --cached --name-only --diff-filter=ACM master...$currentBranch
         Write-Host "Files changed: "  -ForegroundColor Darkblue -BackgroundColor yellow
 - stage: UnitTest
