@@ -28,7 +28,7 @@ stages:
         echo "Build SourceBranch: $(Build.SourceBranch)".Replace("refs/heads/", "")
         echo "Build SourceBranchName: $(Build.SourceBranchName)"
         $currentBranch = "$(Build.SourceBranch)".Replace("refs/heads/", "")
-        $editedFiles = git diff --name-only master...$currentBranch
+        $editedFiles = git diff --name-only master $currentBranch
         Write-Host "Files changed: "  -ForegroundColor Darkblue -BackgroundColor yellow
 - stage: UnitTest
   jobs:
