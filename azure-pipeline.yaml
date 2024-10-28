@@ -24,13 +24,27 @@ stages:
   - job: BuildInformation
     steps:
     - powershell: |
+        if ($(Build.Reason) -eq 'Manual') {
+          Write-Host "The pipeline was triggered manually."
+        } elseif ($(Build.Reason) -eq 'PullRequest') {
+          Write-Host "The pipeline was triggered by a pull request."
+        } else {
+          Write-Host "The pipeline was triggered by another reason: $(Build.Reason)"
+        }
+      displayName: CheckTriggerReason
+    - powershell: |
         echo "Hello, world!"
         echo "Build number: $(Build.BuildNumber)" 
         echo "Build ID: $(Build.BuildID)" 
         echo "Build Reason: $(Build.Reason)"
         echo "Build SourceBranch: $(BRANCH_NAME)"
-        $editedFiles = git diff --name-only origin/master $BRANCH_NAME
-        Write-Host "Files changed: "  -ForegroundColor Darkblue -BackgroundColor yellow
+        if ($(Build.Reason) -eq 'PullRequest') {
+          echo "Pull Request ID: $(System.PullRequest.PullRequestId)"
+          echo "Pull Request Source Branch: $(System.PullRequest.SourceBranch)"
+          echo "Pull Request Target Branch: $(System.PullRequest.TargetBranch)"
+          $editedFiles = git diff --name-only $(System.PullRequest.TargetBranch) $(System.PullRequest.SourceBranch)
+          Write-Host "Files changed: "  -ForegroundColor Darkblue -BackgroundColor yellow
+        }
 - stage: UnitTest
   jobs:
   - job: UnitTestforPython
