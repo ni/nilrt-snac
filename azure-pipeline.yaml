@@ -3,6 +3,9 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
+variables:
+  BRANCH_NAME: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
+
 trigger:
   paths:
     exclude:
@@ -25,10 +28,8 @@ stages:
         echo "Build number: $(Build.BuildNumber)" 
         echo "Build ID: $(Build.BuildID)" 
         echo "Build Reason: $(Build.Reason)"
-        echo "Build SourceBranch: $(Build.SourceBranch)".Replace("refs/heads/", "")
-        echo "Build SourceBranchName: $(Build.SourceBranchName)"
-        $currentBranch = "$(Build.SourceBranch)".Replace("refs/heads/", "")
-        $editedFiles = git diff --name-only master $currentBranch
+        echo "Build SourceBranch: $(BRANCH_NAME)"
+        $editedFiles = git diff --name-only origin/master $BRANCH_NAME
         Write-Host "Files changed: "  -ForegroundColor Darkblue -BackgroundColor yellow
 - stage: UnitTest
   jobs:
