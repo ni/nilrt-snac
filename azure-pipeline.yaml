@@ -25,7 +25,7 @@ stages:
         echo "Build number: $(Build.BuildNumber)" 
         echo "Build ID: $(Build.BuildID)" 
         echo "Build Reason: $(Build.Reason)"
-        $editedFiles = git diff HEAD HEAD~ --name-only
+        $editedFiles = git diff --cached --name-only --diff-filter=ACM
         Write-Host "Files changed: "  -ForegroundColor Darkblue -BackgroundColor yellow
 - stage: UnitTest
   jobs:
