@@ -24,7 +24,7 @@ class _WireguardConfig(_BaseConfig):
         ifplug_conf = _ConfigFile("/etc/ifplugd/ifplugd.conf")
         dry_run: bool = args.dry_run
 
-        self._opkg_helper.install("wireguard-tools", force_reinstall=True)
+        self._opkg_helper.install("wireguard-tools")
 
         if not ifplug_conf.contains("^ARGS_wglv0.*"):
             ifplug_conf.add(
