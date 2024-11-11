@@ -16,6 +16,7 @@ class _SshConfig(_BaseConfig):
     def verify(self, args: argparse.Namespace) -> bool:
         print("Verifying ssh configuration...")
         sshd_config_file = _ConfigFile("/etc/ssh/sshd_config")
+        tmout_config_file = _ConfigFile("/etc/profile.d/tmout.sh")
         valid = True
         if not sshd_config_file.exists():
             valid = False
@@ -26,4 +27,10 @@ class _SshConfig(_BaseConfig):
         elif not sshd_config_file.contains("ClientAliveCountMax 4"):
             valid = False
             logger.error("MISSING: expected ClientAliveCountMax value")
+        if not tmout_config_file.exists():
+            valid = False
+            logger.error(f"MISSING: {tmout_config_file.path} not found")
+        elif not tmout_config_file.contains("TMOUT=600"):
+            valid = False
+            logger.error("MISSING: expected TMOUT value")
         return valid
