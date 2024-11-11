@@ -99,6 +99,7 @@ def _cmd_setup(
     )
 
     print("Setup DONE.")
+    logger.info(f"Remote IPv4 tunnel address: {str(remote_wg_ip)}")
     return EX.OK
 
 
