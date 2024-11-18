@@ -63,7 +63,7 @@ class OpkgHelper:  # noqa: D101 - Missing docstring in public class (auto-genera
         force_essential: bool = False,
         force_depends: bool = False,
     ) -> None:
-        """Remove a single package from the system."""
+        """Remove (de-install) packages from the system."""
 
         logger.info(f"Removing IPK: {package}")
 
