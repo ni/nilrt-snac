@@ -55,24 +55,38 @@ class OpkgHelper:  # noqa: D101 - Missing docstring in public class (auto-genera
         else:
             logger.debug(f"{package} already installed")
 
-    def remove(  # noqa: D102 - Missing docstring in public method (auto-generated noqa)
-        self, package: str, ignore_installed=False, force_essential: bool = False, force_depends: bool = False
+    def remove(
+        self,
+        package: str,
+        autoremove: bool = False,
+        ignore_installed = False,
+        force_essential: bool = False,
+        force_depends: bool = False,
     ) -> None:
+        """Remove a single package from the system."""
 
-        if ignore_installed or self.is_installed(package):
-            check = False if ignore_installed else True
-            cmd = ["opkg", "remove"]
-            if force_essential:
-                cmd.append("--force-removal-of-essential-packages")
-            if force_depends:
-                cmd.append("--force-depends")
-            cmd.append(package)
-            if not self._dry_run:
-                subprocess.run(cmd, check=check)
-            if not ignore_installed:
-                self._installed_packages.remove(package)
-        else:
+        logger.info(f"Removing IPK: {package}")
+
+        # Bail out if the package is not installed.
+        if not ignore_installed and not self.is_installed(package):
             logger.debug(f"{package} already uninstalled")
+            return
+
+        cmd = ["opkg", "remove"]
+
+        if autoremove:
+            cmd.append("--autoremove")
+        if force_essential:
+            cmd.append("--force-removal-of-essential-packages")
+        if force_depends:
+            cmd.append("--force-depends")
+
+        cmd.append(package)
+        if not self._dry_run:
+            subprocess.run(cmd, check=(not ignore_installed))
+        if not ignore_installed:
+            self._installed_packages.remove(package)
+            
 
     def is_installed(  # noqa: D102 - Missing docstring in public method (auto-generated noqa)
         self, package: str
