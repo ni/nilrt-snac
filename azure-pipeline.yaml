@@ -3,6 +3,12 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
+parameters:
+- name: mobilize_ats_pr_build
+  displayName: 'rtos-oetest-locked PR build number (default: empty)'
+  type: string
+  default: ' '
+
 variables:
   BRANCH_NAME: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
   template: /src/rtos/pipeline/version.yml@DevCentral/ni-central
@@ -74,6 +80,14 @@ stages:
     - template: /eng/pipeline/python/templates/setup-venv.yml@DevCentral/ni-central
       parameters:
         venvName: test_venv
+        ${{ if ne(parameters.mobilize_ats_pr_build, ' ') }}:
+          pipPkgs:
+          - rtos-oetest-locked==$(mobilize_ats_pr_build)
+          usePRServer: true
+        ${{ else }}:
+          pipPkgs:
+          - rtos-oetest-locked
+
     - script: |
           echo "Simulate UnitTest On Python Modules"
       displayName: SimulateUnitTestOnPython
