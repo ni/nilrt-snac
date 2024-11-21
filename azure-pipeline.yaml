@@ -5,6 +5,7 @@
 
 variables:
   BRANCH_NAME: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
+  template: /src/rtos/pipeline/version.yml@DevCentral/ni-central
 
 trigger:
   paths:
@@ -44,6 +45,7 @@ stages:
         echo "Build ID: $(Build.BuildID)" 
         echo "Build Reason: $(Build.Reason)"
         echo "Build SourceBranch: $(BRANCH_NAME)"
+        echo "REPO_EXTERNAL_VERSION_NOSPACE: $(REPO_EXTERNAL_VERSION_NOSPACE)"
         if ("$(Build.Reason)" -eq "PullRequest") {
           echo "Pull Request ID: $(System.PullRequest.PullRequestId)"
           echo "Pull Request Source Branch: $(System.PullRequest.SourceBranch)"
