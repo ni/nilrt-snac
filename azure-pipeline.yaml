@@ -14,6 +14,10 @@ parameters:
   displayName: 'rtos-oetest-locked PR build number (default: empty)'
   type: string
   default: ' '
+- name: REPO_EXTERNAL_VERSION_NOSPACE
+  displayName: 'External version number (no spaces)'
+  type: string
+  default: ${{ variables.REPO_EXTERNAL_VERSION_NOSPACE }}
 
 variables:
   BRANCH_NAME: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
