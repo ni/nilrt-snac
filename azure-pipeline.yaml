@@ -18,6 +18,9 @@ trigger:
 
 pool: 
   name: Drivers-NIBuildFarm-RFMIBUILD
+  demands:
+  - agent.os -equals Windows_NT
+  - python3
 
 resources:
   repositories:
@@ -61,11 +64,6 @@ stages:
   jobs:
   - job: UnitTestforPython
     continueOnError: false
-    pool:
-      name: Drivers-NIBuildFarm-RFMIBUILD
-      demands:
-      - agent.os -equals Windows_NT
-      - python3
     steps:
     - script: |
         echo ##vso[task.setvariable variable=NIRTSNACSourcesDirectory]$(Shared.SourcesDirectory)
