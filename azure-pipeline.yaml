@@ -3,6 +3,12 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
+resources:
+  repositories:
+    - repository: DevCentral/ni-central
+      type: git
+      name: ni-central
+
 parameters:
 - name: mobilize_ats_pr_build
   displayName: 'rtos-oetest-locked PR build number (default: empty)'
@@ -28,12 +34,6 @@ pool:
   - agent.os -equals Windows_NT
   - python3
 
-resources:
-  repositories:
-    - repository: DevCentral/ni-central
-      type: git
-      name: ni-central
-
 stages:
 - stage: PrepareBuild
   jobs:
@@ -54,7 +54,7 @@ stages:
         echo "Build ID: $(Build.BuildID)" 
         echo "Build Reason: $(Build.Reason)"
         echo "Build SourceBranch: $(BRANCH_NAME)"
-        echo "REPO_EXTERNAL_VERSION_NOSPACE: %REPO_EXTERNAL_VERSION_NOSPACE%"
+        echo "REPO_EXTERNAL_VERSION_NOSPACE: $(REPO_EXTERNAL_VERSION_NOSPACE)"
         if ("$(Build.Reason)" -eq "PullRequest") {
           echo "Pull Request ID: $(System.PullRequest.PullRequestId)"
           echo "Pull Request Source Branch: $(System.PullRequest.SourceBranch)"
@@ -73,12 +73,6 @@ stages:
   - job: UnitTestforPython
     continueOnError: false
     steps:
-    - script: |
-        echo ##vso[task.setvariable variable=NIRTSNACSourcesDirectory]$(Shared.SourcesDirectory)
-      displayName: Set NIRTSNACSourcesDirectory variable
-    - powershell: |
-        echo "NIRTSNACSourcesDirectory: $(NIRTSNACSourcesDirectory)" 
-      displayName: Check NIRTSNACSourcesDirectory variable
     - template: /eng/pipeline/python/templates/setup-venv.yml@DevCentral/ni-central
       parameters:
         venvName: test_venv
