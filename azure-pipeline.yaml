@@ -18,6 +18,12 @@ trigger:
 pool: 
   name: Drivers-NIBuildFarm-RFMIBUILD
 
+resources:
+  repositories:
+    - repository: DevCentral/ni-central
+      type: git
+      name: ni-central
+
 stages:
 - stage: PrepareBuild
   jobs:
@@ -46,10 +52,32 @@ stages:
           Write-Host "Files changed: "  -ForegroundColor Darkblue -BackgroundColor yellow
         }
 - stage: UnitTest
+  # Only allow one instance of this stage to run at a time to avoid resource contention issues with the targets used in testing.
+  lockBehavior: sequential
+  dependsOn:
+  - PrepareBuild
   jobs:
   - job: UnitTestforPython
     continueOnError: false
+    pool:
+      name: Drivers-NIBuildFarm-RFMIBUILD
+      demands:
+      - agent.os -equals Windows_NT
+      - python3
     steps:
+    - script: |
+        echo ##vso[task.setvariable variable=NIRTSNACSourcesDirectory]$(Shared.SourcesDirectory)
+      displayName: Set NIRTSNACSourcesDirectory variable
+    - template: /eng/pipeline/nibuild/checkout_shared_repo@ni-central
+    - script: |
+        echo ##vso[task.setvariable variable=NICentralSourcesDirectory]$(Shared.SourcesDirectory)
+      displayName: Set NICentralSourcesDirectory variable
+    - script: |
+        echo ##vso[task.setvariable variable=Shared.SourcesDirectory]$(NIRTSNACSourcesDirectory)
+      displayName: Restore Shared.SourcesDirectory variable
+    - powershell: |
+        echo "NIRTSNACSourcesDirectory: $(NIRTSNACSourcesDirectory)" 
+        echo "NICentralSourcesDirectory: $(NICentralSourcesDirectory)" 
     - script: |
           echo "Simulate UnitTest On Python Modules"
       displayName: SimulateUnitTestOnPython
