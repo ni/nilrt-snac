@@ -53,7 +53,7 @@ stages:
           $editedFiles = git diff --name-only $(System.PullRequest.TargetBranch) $(System.PullRequest.SourceBranch)
           Write-Host "Files changed: "  -ForegroundColor Darkblue -BackgroundColor yellow
         }
-- stage: UnitTest
+- stage: SanityTests
   # Only allow one instance of this stage to run at a time to avoid resource contention issues with the targets used in testing.
   lockBehavior: sequential
   dependsOn:
