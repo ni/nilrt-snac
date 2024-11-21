@@ -70,6 +70,10 @@ stages:
       displayName: Set NIRTSNACSourcesDirectory variable
     - powershell: |
         echo "NIRTSNACSourcesDirectory: $(NIRTSNACSourcesDirectory)" 
+      displayName: Check NIRTSNACSourcesDirectory variable
+    - template: /eng/pipeline/python/templates/setup-venv.yml@DevCentral/ni-central
+      parameters:
+        venvName: test_venv
     - script: |
           echo "Simulate UnitTest On Python Modules"
       displayName: SimulateUnitTestOnPython
