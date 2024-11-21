@@ -68,7 +68,7 @@ stages:
     - script: |
         echo ##vso[task.setvariable variable=NIRTSNACSourcesDirectory]$(Shared.SourcesDirectory)
       displayName: Set NIRTSNACSourcesDirectory variable
-    - template: /eng/pipeline/nibuild/checkout_shared_repo@ni-central
+    - template: /eng/pipeline/nibuild/checkout_shared_repo@DevCentral/ni-central
     - script: |
         echo ##vso[task.setvariable variable=NICentralSourcesDirectory]$(Shared.SourcesDirectory)
       displayName: Set NICentralSourcesDirectory variable
