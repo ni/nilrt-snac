@@ -1,0 +1,89 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+resources:
+  repositories:
+    - repository: DevCentral/ni-central
+      type: git
+      name: ni-central
+
+parameters:
+- name: mobilize_ats_pr_build
+  displayName: 'rtos-oetest-locked PR build number (default: empty)'
+  type: string
+  default: ' '
+
+variables:
+- name: BRANCH_NAME
+  value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
+- template: /src/rtos/pipeline/version.yml@DevCentral/ni-central
+
+trigger:
+  paths:
+    exclude:
+    - .github/*
+    - .vs/*
+  branches:
+    include:
+    - master
+
+pool: 
+  name: Drivers-NIBuildFarm-RFMIBUILD
+  demands:
+  - agent.os -equals Windows_NT
+  - python3
+
+stages:
+- stage: PrepareBuild
+  jobs:
+  - job: BuildInformation
+    steps:
+    - powershell: |
+        if ("$(Build.Reason)" -eq "Manual") {
+          Write-Host "The pipeline was triggered manually."
+        } elseif ("$(Build.Reason)" -eq "PullRequest") {
+          Write-Host "The pipeline was triggered by a pull request."
+        } else {
+          Write-Host "The pipeline was triggered by another reason: $(Build.Reason)"
+        }
+      displayName: CheckTriggerReason
+    - powershell: |
+        echo "Hello, world!"
+        echo "Build number: $(Build.BuildNumber)" 
+        echo "Build ID: $(Build.BuildID)" 
+        echo "Build Reason: $(Build.Reason)"
+        echo "Build SourceBranch: $(BRANCH_NAME)"
+        echo "REPO_EXTERNAL_VERSION_NOSPACE: $(REPO_EXTERNAL_VERSION_NOSPACE)"
+        if ("$(Build.Reason)" -eq "PullRequest") {
+          echo "Pull Request ID: $(System.PullRequest.PullRequestId)"
+          echo "Pull Request Source Branch: $(System.PullRequest.SourceBranch)"
+          echo "Pull Request Target Branch: $(System.PullRequest.TargetBranch)"
+        }
+      displayName: PrintBuildInformation
+
+- stage: SanityTests
+  # Only allow one instance of this stage to run at a time to avoid resource contention issues with the targets used in testing.
+  lockBehavior: sequential
+  dependsOn:
+  - PrepareBuild
+  jobs:
+  - job: UnitTestforPython
+    continueOnError: false
+    steps:
+    - template: /eng/pipeline/python/templates/setup-venv.yml@DevCentral/ni-central
+      parameters:
+        venvName: test_venv
+        ${{ if ne(parameters.mobilize_ats_pr_build, ' ') }}:
+          pipPkgs:
+          - rtos-oetest-locked==$(mobilize_ats_pr_build)
+          usePRServer: true
+        ${{ else }}:
+          pipPkgs:
+          - rtos-oetest-locked
+
+    - script: |
+          echo "Simulate UnitTest On Python Modules"
+      displayName: SimulateUnitTestOnPython
+      condition: succeeded()
