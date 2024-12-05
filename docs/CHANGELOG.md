@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * The dedicated wireguard interface is now called `wglv0` (#6).
 * The `configure` operation now installs `wireguard-tools` configuration files for `wglv0`, so it can persist between reboots (#6).
 * Most of the project's logic has been reimplemented as a python module. (#15).
+* The `configure` operation now removes `packagegroup-ni-graphical` in addition to `packagegroup-core-x11` and `packagegroup-ni-xfce`.
 
 
 ## [0.1.1] - 2024-08-19

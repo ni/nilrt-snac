@@ -50,6 +50,7 @@ class _FirewallConfig(_BaseConfig):
         _offlinecmd("--policy=work-in", "--add-ingress-zone=work")
         _offlinecmd("--policy=work-in", "--add-egress-zone=HOST")
         _offlinecmd("--policy=work-in", "--add-protocol=icmp")
+        _offlinecmd("--policy=work-in", "--add-protocol=ipv6-icmp")
         _offlinecmd("--policy=work-in",
                     "--add-service=ssh",
                     "--add-service=mdns",
@@ -59,32 +60,19 @@ class _FirewallConfig(_BaseConfig):
         _offlinecmd("--policy=work-out", "--add-ingress-zone=HOST")
         _offlinecmd("--policy=work-out", "--add-egress-zone=work")
         _offlinecmd("--policy=work-out", "--add-protocol=icmp")
+        _offlinecmd("--policy=work-out", "--add-protocol=ipv6-icmp")
         _offlinecmd("--policy=work-out",
                     "--add-service=ssh",
                     "--add-service=http",
                     "--add-service=https",
                     )
         _offlinecmd("--policy=work-out", "--set-target=REJECT")
-        # Note that quotes around the rule are required when literally typing
-        # this on the command line, but are forbidden here. This is because
-        # firewall-cmd croaks on them:
-        #
-        # Warning: INVALID_RULE: internal error in _lexer(): rule family="ipv6"
-        # icmp-type name="neighbour-advertisement" accept
-        #
-        # The quotes are removed by the shell, while Subprocess passes these
-        # arguments through verbatim.
-        _offlinecmd("--policy=work-out",
-                    "--add-rich-rule=rule family=ipv6 icmp-type name=neighbour-advertisement accept",
-                    "--add-rich-rule=rule family=ipv6 icmp-type name=neighbour-solicitation accept",
-                    "--add-rich-rule=rule family=ipv6 icmp-type name=echo-request accept",
-                    "--add-rich-rule=rule family=ipv6 icmp-type name=echo-reply accept",
-                    )
 
         _offlinecmd("--new-policy=public-in")
         _offlinecmd("--policy=public-in", "--add-ingress-zone=public")
         _offlinecmd("--policy=public-in", "--add-egress-zone=HOST")
         _offlinecmd("--policy=public-in", "--add-protocol=icmp")
+        _offlinecmd("--policy=public-in", "--add-protocol=ipv6-icmp")
         _offlinecmd("--policy=public-in",
                     "--add-service=ssh",
                     "--add-service=wireguard",
@@ -94,6 +82,7 @@ class _FirewallConfig(_BaseConfig):
         _offlinecmd("--policy=public-out", "--add-ingress-zone=HOST")
         _offlinecmd("--policy=public-out", "--add-egress-zone=public")
         _offlinecmd("--policy=public-out",  "--add-protocol=icmp")
+        _offlinecmd("--policy=public-out",  "--add-protocol=ipv6-icmp")
         _offlinecmd("--policy=public-out",
                     "--add-service=dhcp",
                     "--add-service=dhcpv6",
@@ -103,17 +92,6 @@ class _FirewallConfig(_BaseConfig):
                     "--add-service=dns",
                     )
         _offlinecmd("--policy=public-out", "--set-target=REJECT")
-        _offlinecmd("--policy=public-out",
-                    "--add-rich-rule=rule family=ipv6 icmp-type name=neighbour-advertisement accept",
-                    "--add-rich-rule=rule family=ipv6 icmp-type name=neighbour-solicitation accept",
-                    "--add-rich-rule=rule family=ipv6 icmp-type name=echo-request accept",
-                    "--add-rich-rule=rule family=ipv6 icmp-type name=echo-reply accept",
-                    )
-
-        _offlinecmd("--policy=allow-host-ipv6",
-                    "--add-rich-rule=rule family=ipv6 icmp-type name=echo-request accept",
-                    "--add-rich-rule=rule family=ipv6 icmp-type name=echo-reply accept",
-                    )
 
         _cmd("--reload")
 

@@ -60,8 +60,6 @@ stages:
           echo "Pull Request ID: $(System.PullRequest.PullRequestId)"
           echo "Pull Request Source Branch: $(System.PullRequest.SourceBranch)"
           echo "Pull Request Target Branch: $(System.PullRequest.TargetBranch)"
-          $editedFiles = git diff --name-only $(System.PullRequest.TargetBranch) $(System.PullRequest.SourceBranch)
-          Write-Host "Files changed: "  -ForegroundColor Darkblue -BackgroundColor yellow
         }
       displayName: PrintBuildInformation
 

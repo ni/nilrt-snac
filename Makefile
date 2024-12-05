@@ -94,10 +94,10 @@ install : all mkinstalldirs $(DIST_FILES)
 	# ni-wireguard-labview
 	install --mode=0660 \
 		src/ni-wireguard-labview/wglv0.conf \
-		"$(DESTDIR)$(sysconfdir)/wireguard"
+		"$(DESTDIR)/etc/wireguard"
 	install --mode=0754 \
 		src/ni-wireguard-labview/ni-wireguard-labview.initd \
-		"$(DESTDIR)$(sysconfdir)/init.d/ni-wireguard-labview"
+		"$(DESTDIR)/etc/init.d/ni-wireguard-labview"
 
 	# install python library
 	for pyfile in $(PYNILRT_SNAC_FILES); do \
@@ -115,8 +115,8 @@ installcheck :
 
 
 mkinstalldirs :
-	mkdir -p --mode=0700 "$(DESTDIR)$(sysconfdir)/wireguard"
-	mkdir -p --mode=0755 "$(DESTDIR)$(sysconfdir)/init.d"
+	mkdir -p --mode=0700 "$(DESTDIR)/etc/wireguard"
+	mkdir -p --mode=0755 "$(DESTDIR)/etc/init.d"
 	mkdir -p "$(DESTDIR)$(datarootdir)/$(PACKAGE)"
 	mkdir -p "$(DESTDIR)$(docdir)/$(PACKAGE)"
 	mkdir -p "$(DESTDIR)$(libdir)/$(PACKAGE)"
@@ -130,6 +130,6 @@ uninstall :
 	rm -rvf "$(DESTDIR)$(libdir)/$(PACKAGE)"
 
 	# files
-	rm -vf "$(DESTDIR)$(sysconfdir)/init.d/ni-wireguard-labview"
-	rm -vf "$(DESTDIR)$(sysconfdir)/wireguard"/wglv0.*
+	rm -vf "$(DESTDIR)/etc/init.d/ni-wireguard-labview"
+	rm -vf "$(DESTDIR)/etc/wireguard"/wglv0.*
 	rm -vf "$(DESTDIR)$(sbindir)/nilrt-snac"
