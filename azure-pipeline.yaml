@@ -88,31 +88,7 @@ stages:
           - rtos-oetest-locked
 
     - powershell: |
-        dir $(test_venv.bin_dir)\..\Lib\site-packages\
-      displayName: List Mobilize Plans -1
-
-    - powershell: |
-        dir $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest
-      displayName: List Mobilize Plans 
-
-    - powershell: |
-        dir $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans
-      displayName: List Mobilize Plans 1
-
-    - powershell: |
-        dir $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest
-      displayName: List Mobilize Plans 2
-
-    - powershell: |
-        dir $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac
-      displayName: List Mobilize Plans 3
-
-    - powershell: |
-        dir $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac\pr
-      displayName: List Mobilize Plans 4
-
-    - powershell: |
-        $(test_venv.bin_dir)/mako-render $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac\pr\snac_pr_params.yaml.makoo --var use_bsi_next_param=False --var majmin_ver=25.0 > $(ParamsOutputFile)
+        $(test_venv.bin_dir)/mako-render $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac\pr\snac_pr_params.yaml.makoo --var use_bsi_next_param=False --var majmin_ver=25.0 --output-file $(ParamsOutputFile)
       displayName: Mako Render Mobilize Params File
 
     - powershell: |
