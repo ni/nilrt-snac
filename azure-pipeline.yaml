@@ -86,6 +86,14 @@ stages:
           - rtos-oetest-locked
 
     - powershell: |
+        dir $(test_venv.bin_dir)\..\Lib\site-packages\
+      displayName: List Mobilize Plans -1
+
+    - powershell: |
+        dir $(test_venv.bin_dir)\..\Lib\site-packages\rtos-oetest
+      displayName: List Mobilize Plans 
+
+    - powershell: |
         dir $(test_venv.bin_dir)\..\Lib\site-packages\rtos-oetest\mobilize_plans
       displayName: List Mobilize Plans 1
 
