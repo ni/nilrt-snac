@@ -85,31 +85,31 @@ stages:
           pipPkgs:
           - rtos-oetest-locked
 
-    - script: |
+    - powershell: |
         dir $(test_venv.bin_dir)\..\Lib\site-packages\mobilize_simple_ats\mobilize_plans
       displayName: List Mobilize Plans 1
 
-    - script: |
+    - powershell: |
         dir $(test_venv.bin_dir)\..\Lib\site-packages\mobilize_simple_ats\mobilize_plans\rtos_oetest
       displayName: List Mobilize Plans 2
 
-    - script: |
+    - powershell: |
         dir $(test_venv.bin_dir)\..\Lib\site-packages\mobilize_simple_ats\mobilize_plans\rtos_oetest\snac
       displayName: List Mobilize Plans 3
 
-    - script: |
+    - powershell: |
         dir $(test_venv.bin_dir)\..\Lib\site-packages\mobilize_simple_ats\mobilize_plans\rtos_oetest\snac\pr
       displayName: List Mobilize Plans 4
 
-    - script: |
+    - powershell: |
         $(test_venv.bin_dir)/mako-render $(test_venv.bin_dir)\..\Lib\site-packages\mobilize_simple_ats\mobilize_plans\rtos_oetest\snac\pr\snac_pr_params.yaml.makoo --var use_bsi_next=False --var majmin_ver=25.0 > $(ParamsOutputFile)
       displayName: Mako Render Mobilize Params File
 
-    - script: |
+    - powershell: |
         cat $(ParamsOutputFile)
       displayName: Display Mobilize Params File
 
-    - script: |
+    - powershell: |
           echo "Simulate UnitTest On Python Modules"
       displayName: SimulateUnitTestOnPython
       condition: succeeded()
