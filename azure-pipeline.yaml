@@ -79,7 +79,7 @@ stages:
         venvName: test_venv
         ${{ if ne(parameters.mobilize_ats_pr_build, ' ') }}:
           pipPkgs:
-          - rtos-oetest-locked==$(mobilize_ats_pr_build)
+          - rtos-oetest-locked==${{ parameters.mobilize_ats_pr_build }}
           usePRServer: true
         ${{ else }}:
           pipPkgs:
