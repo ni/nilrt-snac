@@ -20,7 +20,7 @@ class _ConfigFile:
 
         self.path = path
         self._config = path.read_text() if path.exists() else ""
-        self._mode = path.stat().st_mode if path.exists() else 0o700
+        self._mode = path.stat().st_mode if path.exists() else 0o600
 
     def save(self, dry_run: bool) -> None:
         """Save the configuration file."""
