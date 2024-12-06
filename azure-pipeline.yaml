@@ -5,9 +5,9 @@
 
 resources:
   repositories:
-    - repository: DevCentral/ni-central
-      type: git
-      name: ni-central
+  - repository: DevCentral/ni-central
+    type: git
+    name: ni-central
 
 parameters:
 - name: mobilize_ats_pr_build
@@ -20,6 +20,8 @@ variables:
   value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
 - name: ParamsOutputFile
   value: $(Build.SourcesDirectory)\snac_pr_params.yaml
+- name: CompiledMobilizePlan
+  value: $(Agent.TempDirectory)/compile_mobilize_plan.yaml
 - template: /src/rtos/pipeline/version.yml@DevCentral/ni-central
 
 trigger:
@@ -110,12 +112,20 @@ stages:
       displayName: List Mobilize Plans 4
 
     - powershell: |
-        $(test_venv.bin_dir)/mako-render $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac\pr\snac_pr_params.yaml.makoo --var use_bsi_next=False --var majmin_ver=25.0 > $(ParamsOutputFile)
+        $(test_venv.bin_dir)/mako-render $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac\pr\snac_pr_params.yaml.makoo --var use_bsi_next_param=False --var majmin_ver=25.0 > $(ParamsOutputFile)
       displayName: Mako Render Mobilize Params File
 
     - powershell: |
         cat $(ParamsOutputFile)
       displayName: Display Mobilize Params File
+
+    - powershell: |
+        $(test_venv.bin_dir)/mobilize -v execute -p $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac\pr\snac_pr_provision_and_test.yaml.mako -a $(ParamsOutputFile) -o $(CompiledMobilizePlan)
+      displayName: Execute Mobilize Plan
+
+    - powershell: |
+        cat $(CompiledMobilizePlan)
+      displayName: Display Compiles Mobilize File
 
     - powershell: |
           echo "Simulate UnitTest On Python Modules"
