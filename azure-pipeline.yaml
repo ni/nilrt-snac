@@ -120,7 +120,7 @@ stages:
       displayName: Display Mobilize Params File
 
     - powershell: |
-        $(test_venv.bin_dir)/mobilize -v execute -p $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac\pr\snac_pr_provision_and_test.yaml.mako -a $(ParamsOutputFile) -o $(CompiledMobilizePlan)
+        $(test_venv.bin_dir)/mobilize -vv execute -p $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac\pr\snac_pr_provision_and_test.yaml.mako -a $(ParamsOutputFile) -o $(CompiledMobilizePlan)
       displayName: Execute Mobilize Plan
 
     - powershell: |
