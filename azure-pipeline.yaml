@@ -120,12 +120,16 @@ stages:
       displayName: Display Mobilize Params File
 
     - powershell: |
+        cat $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac\pr\snac_pr_provision_and_test.yaml.mako
+      displayName: Display Pre-Compiled Mobilize File
+
+    - powershell: |
         $(test_venv.bin_dir)/mobilize -vv execute -p $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac\pr\snac_pr_provision_and_test.yaml.mako -a $(ParamsOutputFile) -o $(CompiledMobilizePlan)
       displayName: Execute Mobilize Plan
 
     - powershell: |
         cat $(CompiledMobilizePlan)
-      displayName: Display Compiles Mobilize File
+      displayName: Display Compiled Mobilize File
 
     - powershell: |
           echo "Simulate UnitTest On Python Modules"
