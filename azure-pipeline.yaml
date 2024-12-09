@@ -13,7 +13,7 @@ parameters:
 - name: mobilize_ats_pr_build
   displayName: 'rtos-oetest-locked PR build number (default: empty)'
   type: string
-  default: '0.3.9999-851286.dev0'
+  default: '0.3.9999-851286.dev2'
 
 variables:
 - name: BRANCH_NAME
@@ -88,7 +88,7 @@ stages:
           - rtos-oetest-locked
 
     - powershell: |
-        $(test_venv.bin_dir)/mako-render $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac\pr\snac_pr_params.yaml.makoo --var use_bsi_next_param=False --var majmin_ver=25.0 --output-file $(ParamsOutputFile)
+        $(test_venv.bin_dir)/mako-render $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac\pr\snac_pr_params.yaml.makoo --var use_bsi_next_param=False --var majmin_ver=25.0 --var REPO_VERSION="$(REPO_EXTERNAL_VERSION)" --output-file $(ParamsOutputFile)
       displayName: Mako Render Mobilize Params File
 
     - powershell: |
