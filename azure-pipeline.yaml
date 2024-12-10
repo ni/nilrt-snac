@@ -58,6 +58,7 @@ stages:
         echo "Build number: $(Build.BuildNumber)" 
         echo "Build ID: $(Build.BuildID)" 
         echo "Build Reason: $(Build.Reason)"
+        echo "Build Sources Directory: $(Build.SourcesDirectory)"
         echo "Build SourceBranch: $(BRANCH_NAME)"
         echo "REPO_EXTERNAL_VERSION_NOSPACE: $(REPO_EXTERNAL_VERSION_NOSPACE)"
         if ("$(Build.Reason)" -eq "PullRequest") {
