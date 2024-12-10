@@ -67,6 +67,8 @@ stages:
           echo "Pull Request Target Branch: $(System.PullRequest.TargetBranch)"
         }
       displayName: PrintBuildInformation
+    - powershell: |
+        dir $(Build.SourcesDirectory)
 
 - stage: SanityTests
   # Only allow one instance of this stage to run at a time to avoid resource contention issues with the targets used in testing.
