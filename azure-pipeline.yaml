@@ -89,7 +89,7 @@ stages:
           - rtos-oetest-locked
 
     - powershell: |
-        $(test_venv.bin_dir)/mako-render $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac\pr\snac_pr_params.yaml.makoo --var use_bsi_next_param=False --var majmin_ver="$(Version.Distribution)" --var REPO_VERSION="$(REPO_EXTERNAL_VERSION)" --var REPO_ROOT="$(Build.SourcesDirectory)" --output-file $(ParamsOutputFile)
+        $(test_venv.bin_dir)/mako-render $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac\pr\snac_pr_params.yaml.makoo --var use_bsi_next_param=False --var majmin_ver="$(Version.Distribution)" --var REPO_VERSION="$(REPO_EXTERNAL_VERSION)" --var REPO_ROOT="$(Build.SourcesDirectory)" --var REPO_EXTERNAL_VERSION_NOSPACE="$(REPO_EXTERNAL_VERSION_NOSPACE)" --output-file $(ParamsOutputFile)
       displayName: Mako Render Mobilize Params File
 
     - powershell: |
