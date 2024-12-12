@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * The `configure` operation now installs `libpwquality` and enables password quality checks. (#11)
 * The `configure` operation now installs and configures `tmux` as the shell, including adding a 15 minute inactivity lock (#17)
 * Added a `verify` operation to non-destructively check that the system is still SNAC-compliant. (#15)
+* PR now runs sanity checks for `nilrt-snac`.
 
 ### Changed
 
