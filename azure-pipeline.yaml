@@ -5,12 +5,12 @@
 
 resources:
   repositories:
-    - repository: DevCentral/ni-central
-      type: git
-      name: ni-central
+  - repository: DevCentral/ni-central
+    type: git
+    name: ni-central
 
 parameters:
-- name: mobilize_ats_pr_build
+- name: rtos_oetest_locked_pr_build
   displayName: 'rtos-oetest-locked PR build number (default: empty)'
   type: string
   default: ' '
@@ -18,9 +18,13 @@ parameters:
 variables:
 - name: BRANCH_NAME
   value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
+- name: ParamsOutputFile
+  value: $(Build.SourcesDirectory)\snac_pr_params.yaml
+- name: CompiledMobilizePlan
+  value: $(Agent.TempDirectory)/compile_mobilize_plan.yaml
 - template: /src/rtos/pipeline/version.yml@DevCentral/ni-central
 
-trigger:
+pr:
   paths:
     exclude:
     - .github/*
@@ -36,7 +40,7 @@ pool:
   - python3
 
 stages:
-- stage: PrepareBuild
+- stage: BuildInformation
   jobs:
   - job: BuildInformation
     steps:
@@ -54,6 +58,7 @@ stages:
         echo "Build number: $(Build.BuildNumber)" 
         echo "Build ID: $(Build.BuildID)" 
         echo "Build Reason: $(Build.Reason)"
+        echo "Build Sources Directory: $(Build.SourcesDirectory)"
         echo "Build SourceBranch: $(BRANCH_NAME)"
         echo "REPO_EXTERNAL_VERSION_NOSPACE: $(REPO_EXTERNAL_VERSION_NOSPACE)"
         if ("$(Build.Reason)" -eq "PullRequest") {
@@ -67,23 +72,30 @@ stages:
   # Only allow one instance of this stage to run at a time to avoid resource contention issues with the targets used in testing.
   lockBehavior: sequential
   dependsOn:
-  - PrepareBuild
+  - BuildInformation
   jobs:
-  - job: UnitTestforPython
+  - job: SanityTests
     continueOnError: false
     steps:
     - template: /eng/pipeline/python/templates/setup-venv.yml@DevCentral/ni-central
       parameters:
         venvName: test_venv
-        ${{ if ne(parameters.mobilize_ats_pr_build, ' ') }}:
+        ${{ if ne(parameters.rtos_oetest_locked_pr_build, ' ') }}:
           pipPkgs:
-          - rtos-oetest-locked==$(mobilize_ats_pr_build)
+          - rtos-oetest-locked==${{ parameters.rtos_oetest_locked_pr_build }}
           usePRServer: true
         ${{ else }}:
           pipPkgs:
           - rtos-oetest-locked
 
-    - script: |
-          echo "Simulate UnitTest On Python Modules"
-      displayName: SimulateUnitTestOnPython
-      condition: succeeded()
+    - powershell: |
+        $(test_venv.bin_dir)/mako-render $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac\pr\snac_pr_params.yaml.makoo --var majmin_ver="$(Version.Distribution)" --var REPO_VERSION="$(REPO_EXTERNAL_VERSION)" --var REPO_ROOT="$(Build.SourcesDirectory)" --var REPO_EXTERNAL_VERSION_NOSPACE="$(REPO_EXTERNAL_VERSION_NOSPACE)" --output-file $(ParamsOutputFile)
+      displayName: Mako Render Mobilize Params File
+
+    - powershell: |
+        cat $(ParamsOutputFile)
+      displayName: Display Mobilize Params File
+
+    - powershell: |
+        $(test_venv.bin_dir)/mobilize -vv execute -p $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac\pr\snac_pr_provision_and_test.yaml.mako -a $(ParamsOutputFile) -o $(CompiledMobilizePlan)
+      displayName: Execute Mobilize Plan
