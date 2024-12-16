@@ -39,6 +39,7 @@ class _FirewallConfig(_BaseConfig):
         self._opkg_helper.install("firewalld")
         self._opkg_helper.install("firewalld-offline-cmd")
         self._opkg_helper.install("firewalld-log-rotate")
+        self._opkg_helper.install("ni-firewalld-servicedefs")
 
         _offlinecmd("--reset-to-defaults")
 
@@ -94,6 +95,14 @@ class _FirewallConfig(_BaseConfig):
                     )
         _offlinecmd("--policy=public-out", "--set-target=REJECT")
 
+        _offlinecmd("--policy=work-in",
+                    "--add-service=ni-labview-realtime",
+                    "--add-service=ni-labview-viserver",
+                    "--add-service=ni-logos-xt",
+                    "--add-service=ni-mxs",
+                    "--add-service=ni-rpc-server",
+                    "--add-service=ni-service-locator",
+                    )
         _offlinecmd("--policy=work-out",
                     "--add-service=amqp",
                     "--add-service=salt-master",
