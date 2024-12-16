@@ -94,6 +94,11 @@ class _FirewallConfig(_BaseConfig):
                     )
         _offlinecmd("--policy=public-out", "--set-target=REJECT")
 
+        _offlinecmd("--policy=work-out",
+                    "--add-service=amqp",
+                    "--add-service=salt-master",
+                    )
+
         _cmd("--reload")
 
     def verify(self, args: argparse.Namespace) -> bool:
