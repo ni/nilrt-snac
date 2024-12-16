@@ -2,8 +2,6 @@
 
 The NI LinuxRT Secured, Network-Attached Controller (SNAC) tool is a utility for admins to put a NILRT system into the SNAC configuration.
 
-NOTICE: This tool is under-development and is very unsafe to run on a production system.
-
 
 # Design
 

@@ -25,7 +25,6 @@ There is NO WARRANTY, to the extent permitted by law.
 
 def _configure(args: argparse.Namespace) -> int:
     """Configure SNAC mode."""
-    logger.warning("!! THIS TOOL IS IN-DEVELOPMENT AND APPROPRIATE ONLY FOR DEVELOPER TESTING !!")
     logger.warning("!! Running this tool will irreversibly alter the state of your system.    !!")
     logger.warning("!! If you are accessing your system using WiFi, you will lose connection. !!")
 
