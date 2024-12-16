@@ -90,6 +90,7 @@ class _FirewallConfig(_BaseConfig):
                     "--add-service=https",
                     "--add-service=wireguard",
                     "--add-service=dns",
+                    "--add-service=ntp",
                     )
         _offlinecmd("--policy=public-out", "--set-target=REJECT")
 
