@@ -22,6 +22,8 @@ export libdir ?= $(exec_prefix)/lib
 export sbindir ?= $(exec_prefix)/sbin
 export sysconfdir ?= $(prefix)/etc
 
+export nirococonfdir ?= $(datarootdir)/niroco.d
+
 # BINARIES #
 
 export PYTHON ?= python3
@@ -99,6 +101,11 @@ install : all mkinstalldirs $(DIST_FILES)
 		src/ni-wireguard-labview/ni-wireguard-labview.initd \
 		"$(DESTDIR)/etc/init.d/ni-wireguard-labview"
 
+	# firewall configuration pieces
+	install --mode=0644 \
+		src/x-niroco-static-port.ini \
+		"$(DESTDIR)$(nirococonfdir)"
+
 	# install python library
 	for pyfile in $(PYNILRT_SNAC_FILES); do \
 		install -D "$${pyfile}" "$(DESTDIR)$(libdir)/$(PACKAGE)/$${pyfile}"; \
@@ -121,6 +128,7 @@ mkinstalldirs :
 	mkdir -p "$(DESTDIR)$(docdir)/$(PACKAGE)"
 	mkdir -p "$(DESTDIR)$(libdir)/$(PACKAGE)"
 	mkdir -p "$(DESTDIR)$(sbindir)"
+	mkdir -p "$(DESTDIR)$(nirococonfdir)"
 
 
 uninstall :
@@ -133,3 +141,4 @@ uninstall :
 	rm -vf "$(DESTDIR)/etc/init.d/ni-wireguard-labview"
 	rm -vf "$(DESTDIR)/etc/wireguard"/wglv0.*
 	rm -vf "$(DESTDIR)$(sbindir)/nilrt-snac"
+	rm -vf "$(DESTDIR)$(nirococonfdir)/x-niroco-static-port.ini"

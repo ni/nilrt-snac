@@ -103,6 +103,10 @@ class _FirewallConfig(_BaseConfig):
                     "--add-service=ni-rpc-server",
                     "--add-service=ni-service-locator",
                     )
+        _offlinecmd("--policy=work-in",
+                    # Temporary port add; see x-niroco-static-port.ini
+                    "--add-port=55184/tcp",
+                    )
         _offlinecmd("--policy=work-out",
                     "--add-service=amqp",
                     "--add-service=salt-master",
