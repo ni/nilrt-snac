@@ -24,6 +24,31 @@ def _check_target(policy: str, expected: str = "REJECT") -> bool:
     logger.error(f"ERROR: policy {policy} target: expected {expected}, observed {actual}")
     return False
 
+def _check_service(Q: str, service: str, expected: str = "yes") -> bool:
+    """Verifies firewall-cmd (--policy=POLICY/--zone=ZONE/etc.) --query-service=SERVICE
+    matches what is expected.
+    """
+
+    actual: str = subprocess.getoutput(
+        f"firewall-cmd --permanent {Q} --query-service={service}")
+    if expected == actual:
+        return True
+    logger.error(f"ERROR: {Q} service {service}: expected {expected}, observed {actual}")
+    return False
+
+
+def _check_service_info(service: str, Q: str, expected: str) -> bool:
+    """Verifies firewall-cmd --service=SERVICE (--get-ports/--get-description/etc.)
+    matches what is expected.
+    """
+
+    actual: str = subprocess.getoutput(
+        f"firewall-cmd --permanent --service={service} {Q}")
+    if expected == actual:
+        return True
+    logger.error(f"ERROR: service {service} {Q}: expected {expected}, observed {actual}")
+    return False
+
 
 class _FirewallConfig(_BaseConfig):
     def __init__(self):
@@ -130,8 +155,15 @@ class _FirewallConfig(_BaseConfig):
             logger.error(f"MISSING: firewall-cmd")
             valid = False
 
-        valid = _check_target("work-in", "CONTINUE") and valid
-        valid = _check_target("work-out") and valid
-        valid = _check_target("public-in", "CONTINUE") and valid
-        valid = _check_target("public-out") and valid
+        valid = all([
+            _check_target("work-in", "CONTINUE"),
+            _check_target("work-out"),
+            _check_target("public-in", "CONTINUE"),
+            _check_target("public-out"),
+            _check_service("--policy=work-in", "ni-labview-realtime"),
+            _check_service("--policy=public-in", "ni-labview-realtime", "no"),
+            _check_service("--zone=public", "ni-labview-realtime", "no"),
+            _check_service_info("ni-labview-realtime", "--get-ports", "3079/tcp"),
+            ])
+
         return valid
