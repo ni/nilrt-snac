@@ -97,35 +97,35 @@ stages:
       displayName: $(test_venv.bin_dir)/..
 
     - powershell: |
-        dir $(test_venv.bin_dir)/../Lib
-      displayName: $(test_venv.bin_dir)/../Lib
+        dir $(test_venv.bin_dir)/../lib
+      displayName: $(test_venv.bin_dir)/../lib
 
     - powershell: |
-        dir $(test_venv.bin_dir)/../Lib/site-packages
-      displayName: $(test_venv.bin_dir)/../Lib/site-packages
+        dir $(test_venv.bin_dir)/../lib/site-packages
+      displayName: $(test_venv.bin_dir)/../lib/site-packages
 
     - powershell: |
-        dir $(test_venv.bin_dir)/../Lib/site-packages/rtos_oetest
-      displayName: $(test_venv.bin_dir)/../Lib/site-packages/rtos_oetest
+        dir $(test_venv.bin_dir)/../lib/site-packages/rtos_oetest
+      displayName: $(test_venv.bin_dir)/../lib/site-packages/rtos_oetest
 
     - powershell: |
-        dir $(test_venv.bin_dir)/../Lib/site-packages/rtos_oetest/mobilize_plans
-      displayName: $(test_venv.bin_dir)/../Lib/site-packages/rtos_oetest/mobilize_plans
+        dir $(test_venv.bin_dir)/../lib/site-packages/rtos_oetest/mobilize_plans
+      displayName: $(test_venv.bin_dir)/../lib/site-packages/rtos_oetest/mobilize_plans
 
     - powershell: |
-        dir $(test_venv.bin_dir)/../Lib/site-packages/rtos_oetest/mobilize_plans/rtos_oetest
-      displayName: $(test_venv.bin_dir)/../Lib/site-packages/rtos_oetest/mobilize_plans/rtos_oetest
+        dir $(test_venv.bin_dir)/../lib/site-packages/rtos_oetest/mobilize_plans/rtos_oetest
+      displayName: $(test_venv.bin_dir)/../lib/site-packages/rtos_oetest/mobilize_plans/rtos_oetest
 
     - powershell: |
-        dir $(test_venv.bin_dir)/../Lib/site-packages/rtos_oetest/mobilize_plans/rtos_oetest/snac
-      displayName: $(test_venv.bin_dir)/../Lib/site-packages/rtos_oetest/mobilize_plans/rtos_oetest/snac
+        dir $(test_venv.bin_dir)/../lib/site-packages/rtos_oetest/mobilize_plans/rtos_oetest/snac
+      displayName: $(test_venv.bin_dir)/../lib/site-packages/rtos_oetest/mobilize_plans/rtos_oetest/snac
 
     - powershell: |
-        dir $(test_venv.bin_dir)/../Lib/site-packages/rtos_oetest/mobilize_plans/rtos_oetest/snac/pr
-      displayName: $(test_venv.bin_dir)/../Lib/site-packages/rtos_oetest/mobilize_plans/rtos_oetest/snac/pr
+        dir $(test_venv.bin_dir)/../lib/site-packages/rtos_oetest/mobilize_plans/rtos_oetest/snac/pr
+      displayName: $(test_venv.bin_dir)/../lib/site-packages/rtos_oetest/mobilize_plans/rtos_oetest/snac/pr
 
     - powershell: |
-        $(test_venv.bin_dir)/mako-render $(test_venv.bin_dir)/../Lib/site-packages/rtos_oetest/mobilize_plans/rtos_oetest/snac/pr/snac_pr_params.yaml.makoo --var majmin_ver="$(Version.Distribution)" --var REPO_VERSION="$(REPO_EXTERNAL_VERSION)" --var REPO_ROOT="$(Build.SourcesDirectory)" --var REPO_EXTERNAL_VERSION_NOSPACE="$(REPO_EXTERNAL_VERSION_NOSPACE)" --output-file $(ParamsOutputFile)
+        $(test_venv.bin_dir)/mako-render $(test_venv.bin_dir)/../lib/site-packages/rtos_oetest/mobilize_plans/rtos_oetest/snac/pr/snac_pr_params.yaml.makoo --var majmin_ver="$(Version.Distribution)" --var REPO_VERSION="$(REPO_EXTERNAL_VERSION)" --var REPO_ROOT="$(Build.SourcesDirectory)" --var REPO_EXTERNAL_VERSION_NOSPACE="$(REPO_EXTERNAL_VERSION_NOSPACE)" --output-file $(ParamsOutputFile)
       displayName: Mako Render Mobilize Params File
 
     - powershell: |
@@ -133,6 +133,6 @@ stages:
       displayName: Display Mobilize Params File
 
     - powershell: |
-        $(test_venv.bin_dir)/mobilize -vv execute -p $(test_venv.bin_dir)/../Lib/site-packages/rtos_oetest/mobilize_plans/rtos_oetest/snac/pr/snac_pr_provision_and_test.yaml.mako -a $(ParamsOutputFile) -o $(CompiledMobilizePlan)
+        $(test_venv.bin_dir)/mobilize -vv execute -p $(test_venv.bin_dir)/../lib/site-packages/rtos_oetest/mobilize_plans/rtos_oetest/snac/pr/snac_pr_provision_and_test.yaml.mako -a $(ParamsOutputFile) -o $(CompiledMobilizePlan)
       displayName: Execute Mobilize Plan
 
