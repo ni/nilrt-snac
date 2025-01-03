@@ -19,7 +19,7 @@ variables:
 - name: BRANCH_NAME
   value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
 - name: ParamsOutputFile
-  value: $(Build.SourcesDirectory)\snac_pr_params.yaml
+  value: $(Build.SourcesDirectory)/snac_pr_params.yaml
 - name: CompiledMobilizePlan
   value: $(Agent.TempDirectory)/compile_mobilize_plan.yaml
 - template: /src/rtos/pipeline/version.yml@DevCentral/ni-central
@@ -89,7 +89,7 @@ stages:
           - rtos-oetest-locked
 
     - powershell: |
-        $(test_venv.bin_dir)/mako-render $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac\pr\snac_pr_params.yaml.makoo --var majmin_ver="$(Version.Distribution)" --var REPO_VERSION="$(REPO_EXTERNAL_VERSION)" --var REPO_ROOT="$(Build.SourcesDirectory)" --var REPO_EXTERNAL_VERSION_NOSPACE="$(REPO_EXTERNAL_VERSION_NOSPACE)" --output-file $(ParamsOutputFile)
+        $(test_venv.bin_dir)/mako-render $(test_venv.bin_dir)/../Lib/site-packages/rtos_oetest/mobilize_plans/rtos_oetest/snac/pr/snac_pr_params.yaml.makoo --var majmin_ver="$(Version.Distribution)" --var REPO_VERSION="$(REPO_EXTERNAL_VERSION)" --var REPO_ROOT="$(Build.SourcesDirectory)" --var REPO_EXTERNAL_VERSION_NOSPACE="$(REPO_EXTERNAL_VERSION_NOSPACE)" --output-file $(ParamsOutputFile)
       displayName: Mako Render Mobilize Params File
 
     - powershell: |
@@ -97,6 +97,6 @@ stages:
       displayName: Display Mobilize Params File
 
     - powershell: |
-        $(test_venv.bin_dir)/mobilize -vv execute -p $(test_venv.bin_dir)\..\Lib\site-packages\rtos_oetest\mobilize_plans\rtos_oetest\snac\pr\snac_pr_provision_and_test.yaml.mako -a $(ParamsOutputFile) -o $(CompiledMobilizePlan)
+        $(test_venv.bin_dir)/mobilize -vv execute -p $(test_venv.bin_dir)/../Lib/site-packages/rtos_oetest/mobilize_plans/rtos_oetest/snac/pr/snac_pr_provision_and_test.yaml.mako -a $(ParamsOutputFile) -o $(CompiledMobilizePlan)
       displayName: Execute Mobilize Plan
 
