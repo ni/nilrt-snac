@@ -101,6 +101,10 @@ stages:
       displayName: $(test_venv.bin_dir)/../lib
 
     - powershell: |
+        dir $(test_venv.bin_dir)/../lib/python3.9
+      displayName: $(test_venv.bin_dir)/../lib/python3.9
+
+    - powershell: |
         dir $(test_venv.bin_dir)/../lib/site-packages
       displayName: $(test_venv.bin_dir)/../lib/site-packages
 
