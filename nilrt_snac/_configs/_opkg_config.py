@@ -34,6 +34,8 @@ class _OPKGConfig(_BaseConfig):
             logger.debug("Removing unsupported package feeds...")
             if not dry_run:
                 subprocess.run(["rm", "-fv", "/etc/opkg/NI-dist.conf"], check=True)
+            else:
+                print("Dry run: would have run rm -fv /etc/opkg/NI-dist.conf")
 
         if base_feeds_config_file.contains("src.*/extra/.*"):
             base_feeds_config_file.update("^src.*/extra/.*", "")

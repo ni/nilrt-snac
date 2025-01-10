@@ -31,10 +31,12 @@ class _WIFIConfig(_BaseConfig):
             )
 
         config_file.save(dry_run)
+        logger.debug("Removing any WiFi modules in memory")
         if not dry_run:
-            logger.debug("Removing any WiFi modules in memory")
             # We do not check for success. If the modules are not loaded, this will return an error
             subprocess.run(["rmmod", "cfg80211", "mac80211"], check=False)
+        else:
+            print("Dry run: would have run rmmod cfg80211 mac80211")
 
     def verify(self, args: argparse.Namespace) -> bool:
         print("Verifying WiFi configuration...")

@@ -54,8 +54,8 @@ class _WireguardConfig(_BaseConfig):
         private_key.save(dry_run)
         public_key.save(dry_run)
         ifplug_conf.save(dry_run)
+        logger.debug("Restating wireguard service")
         if not dry_run:
-            logger.debug("Restating wireguard service")
             subprocess.run(
                 [
                     "update-rc.d",
@@ -75,6 +75,9 @@ class _WireguardConfig(_BaseConfig):
                 check=True,
             )
             subprocess.run(["/etc/init.d/ni-wireguard-labview", "restart"], check=True)
+        else:
+            print("Dry run: would have run update-rc.d ni-wireguard-labview start 03 3 4 5 . stop 05 0 6 .")
+            print("Dry run: would have run /etc/init.d/ni-wireguard-labview restart")
 
     def verify(self, args: argparse.Namespace) -> bool:
         print("Verifying wireguard configuration...")

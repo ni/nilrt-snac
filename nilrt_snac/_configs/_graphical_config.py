@@ -13,10 +13,11 @@ class _GraphicalConfig(_BaseConfig):
 
     def configure(self, args: Namespace) -> None:
         print("Deconfiguring the graphical UI...")
-        if args.dry_run:
-            return
 
-        run(["nirtcfg", "--set", "section=systemsettings,token=ui.enabled,value=False"], check=True)
+        if not args.dry_run:
+            run(["nirtcfg", "--set", "section=systemsettings,token=ui.enabled,value=False"], check=True)
+        else:
+            print("Dry run: would have run nirtcfg --set section=systemsettings,token=ui.enabled,value=False")
         opkg.remove("packagegroup-ni-graphical", autoremove=True)
         opkg.remove("packagegroup-core-x11", autoremove=True)
 

@@ -19,9 +19,11 @@ class _NIAuthConfig(_BaseConfig):
         if not self._opkg_helper.is_installed("nilrt-snac-conflicts"):
             self._opkg_helper.install(str(SNAC_DATA_DIR / "nilrt-snac-conflicts.ipk"))
 
+        logger.debug("Removing root password")
         if not dry_run:
-            logger.debug("Removing root password")
             subprocess.run(["passwd", "-d", "root"], check=True)
+        else:
+            print("Dry run: would have run passwd -d root")
 
     def verify(self, args: argparse.Namespace) -> bool:
         print("Verifying NIAuth...")
