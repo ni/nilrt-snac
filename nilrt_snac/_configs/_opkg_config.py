@@ -17,6 +17,7 @@ class _OPKGConfig(_BaseConfig):
     def configure(self, args: argparse.Namespace) -> None:
         print("Configuring opkg...")
         snac_config_file = _ConfigFile(OPKG_SNAC_CONF)
+        snac_config_file.chmod(0o644)
         base_feeds_config_file = _ConfigFile("/etc/opkg/base-feeds.conf")
         dry_run: bool = args.dry_run
 
