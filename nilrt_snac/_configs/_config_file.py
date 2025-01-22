@@ -2,6 +2,9 @@
 
 import pathlib
 import re
+import os
+import grp
+import pwd
 from typing import Union
 
 from nilrt_snac import logger
@@ -21,6 +24,8 @@ class _ConfigFile:
         self.path = path
         self._config = path.read_text() if path.exists() else ""
         self._mode = path.stat().st_mode if path.exists() else 0o600
+        self._uid = path.stat().st_uid if path.exists() else None
+        self._gid = path.stat().st_gid if path.exists() else None
 
     def save(self, dry_run: bool) -> None:
         """Save the configuration file."""
@@ -29,6 +34,8 @@ class _ConfigFile:
         else:
             self.path.write_text(self._config)
             self.path.chmod(self._mode)
+            if self._uid is not None and self._gid is not None:
+                os.chown(self.path, self._uid, self._gid)
         logger.debug(f"Contents of {self.path}:")
         logger.debug(self._config)
 
@@ -56,6 +63,16 @@ class _ConfigFile:
 
     def chmod(self, mode: int) -> None:
         self._mode = mode
+    
+    def chown(self, user: str, group: str) -> None:
+        """Change the owner and group of the configuration file.
+
+        Args:
+            user: Username to set as the owner.
+            group: Group name to set as the group.
+        """
+        self._uid = pwd.getpwnam(user).pw_uid
+        self._gid = grp.getgrnam(group).gr_gid
 
     def contains(self, key: str) -> bool:
         """Check if the configuration file contains the given key.
@@ -73,8 +90,9 @@ class _ConfigFile:
 
         Returns: The value of the key if found, empty string otherwise.
         """
-        match = re.search(key, self._config)
-        if match:
+        value_pattern = rf"{key}\s*=\s*(.*)"
+        match = re.search(value_pattern, self._config)
+        if match and match.lastindex >= 1:
             return match.group(1)
         else:
             return ""
