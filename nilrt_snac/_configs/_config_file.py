@@ -65,3 +65,16 @@ class _ConfigFile:
         Returns: True if the key is found, False otherwise.
         """
         return bool(re.search(key, self._config))
+    
+    def get(self, key: str) -> str:
+        """Get the value of the given key in the configuration file.
+
+        Args: key: RE pattern to search for in the configuration file.
+
+        Returns: The value of the key if found, empty string otherwise.
+        """
+        match = re.search(key, self._config)
+        if match:
+            return match.group(1)
+        else:
+            return ""

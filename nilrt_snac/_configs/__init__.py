@@ -1,5 +1,6 @@
 from typing import List
 
+from nilrt_snac._configs._auditd_config import _AuditdConfig
 from nilrt_snac._configs._base_config import _BaseConfig
 from nilrt_snac._configs._console_config import _ConsoleConfig
 from nilrt_snac._configs._cryptsetup_config import _CryptSetupConfig
@@ -36,4 +37,5 @@ CONFIGS: List[_BaseConfig] = [
     _SshConfig(),
     _SudoConfig(),
     _FirewallConfig(),
+    _AuditdConfig(),
 ]
