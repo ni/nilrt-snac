@@ -77,6 +77,11 @@ def _parse_args(argv: List[str]) -> argparse.Namespace:
         action="store_true",
         help="Consent to changes",
     )
+    configure_parser.add_argument(
+        "--audit_email",
+        type=str,
+        help="Email address for audit actions",
+    )
     configure_parser.set_defaults(func=_configure)
 
     verify_parser = subparsers.add_parser("verify", help="Verify SNAC mode configured correctly")
