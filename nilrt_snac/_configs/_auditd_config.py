@@ -6,14 +6,13 @@ import os
 import stat
 from nilrt_snac._configs._base_config import _BaseConfig
 from nilrt_snac._configs._config_file import _ConfigFile
+from typing import List
 from nilrt_snac import logger
 from nilrt_snac.opkg import opkg_helper
 
 def _cmd(*args: str):
     "Syntactic sugar for running shell commands."
     subprocess.run(args, check=True)
-
-from typing import List
 
 def ensure_proper_groups(groups: List[str]) -> None:
     "Ensures the specified groups exist on the system."
