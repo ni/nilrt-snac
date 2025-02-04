@@ -83,16 +83,12 @@ class _ConfigFile:
         """
         return bool(re.search(key, self._config))
     
+ 
+class EqualsDelimitedConfigFile(_ConfigFile):
     def get(self, key: str) -> str:
-        """Get the value of the given key in the configuration file.
-
-        Args: key: RE pattern to search for in the configuration file.
-
-        Returns: The value of the key if found, empty string otherwise.
-        """
         value_pattern = rf"{key}\s*=\s*(.*)"
         match = re.search(value_pattern, self._config)
-        if match and match.lastindex >= 1:
-            return match.group(1)
+        if match:
+            return match.group(1).strip()
         else:
             return ""

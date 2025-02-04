@@ -1,13 +1,14 @@
 import argparse
-import subprocess
-import re
 import grp
 import os
+import re
 import stat
-from nilrt_snac._configs._base_config import _BaseConfig
-from nilrt_snac._configs._config_file import _ConfigFile
+import subprocess
 from typing import List
+
 from nilrt_snac import logger
+from nilrt_snac._configs._base_config import _BaseConfig
+from nilrt_snac._configs._config_file import EqualsDelimitedConfigFile, _ConfigFile
 from nilrt_snac.opkg import opkg_helper
 
 def _cmd(*args: str):
@@ -58,7 +59,7 @@ class _AuditdConfig(_BaseConfig):
 
     def configure(self, args: argparse.Namespace) -> None:
         print("Configuring auditd...")
-        auditd_config_file = _ConfigFile(self.audit_config_path)
+        auditd_config_file = EqualsDelimitedConfigFile(self.audit_config_path)
 
         dry_run: bool = args.dry_run
         if dry_run:
@@ -67,24 +68,62 @@ class _AuditdConfig(_BaseConfig):
         # Check if auditd is already installed
         if not self._opkg_helper.is_installed("auditd"):
             self._opkg_helper.install("auditd")
-
-        # Enable and start auditd service
-        _cmd("update-rc.d", "auditd", "defaults")
-        _cmd("service", "auditd", "start")
+        
+        #Ensure proper groups exist
+        groups_required = ["adm", "sudo"]
+        ensure_proper_groups(groups_required)
 
         # Prompt for email if not provided
         audit_email = args.audit_email
         if not audit_email:
             audit_email = auditd_config_file.get("action_mail_acct")
-        while not is_valid_email(audit_email):
-            audit_email = input("Please enter your audit email address: ")
+        if not is_valid_email(audit_email):
+            audit_email = input("Please enter your audit email address (optional): ")
+        if is_valid_email(audit_email):
+            auditd_config_file.update(r'^action_mail_acct\s*=.*$', f'action_mail_acct = {audit_email}')
+            
+            # Install recommended SMTP package dependency
+            if not self._opkg_helper.is_installed("msmtp"):
+                self._opkg_helper.install("msmtp")
 
-        # Set the action_mail_acct attribute in auditd.conf
-        auditd_config_file.update(r'^action_mail_acct\s*=.*$', f'action_mail_acct = {audit_email}')
+                # Create template msmtp configuration file
+                msmtp_config_path = "/etc/msmtprc"
+                msmtp_config = """
+                account default
+                host smtp.yourisp.com
+                port 587
+                auth on
+                user your_email@domain.com
+                password your_password
+                from your_email@domain.com
+                tls on
+                tls_trust_file /etc/ssl/certs/ca-certificates.crt
+                logfile /var/log/msmtp.log
+                """
 
-        #Ensure proper groups exist
-        groups_required = ["adm", "sudo"]
-        ensure_proper_groups(groups_required)
+                if not os.path.exists(msmtp_config_path):
+                    with open(msmtp_config_path, "w") as file:
+                        file.write(msmtp_config)
+                    
+                    # Set the appropriate permissions
+                    msmtp_config_file = _ConfigFile(msmtp_config_path)
+                    msmtp_config_file.chown("root", "sudo")
+                    msmtp_config_file.chmod(0o660)
+                    msmtp_config_file.save(dry_run)
+
+                    print('Please add your SMTP server credentials to the msmtp configuration file at /etc/msmtprc')
+                
+                #Create symbolic link in order to override sendmail default location
+                sendmail_default_location = '/usr/sbin/sendmail'
+                msmtp_location = '/usr/bin/msmtp'
+                if not os.path.islink(sendmail_default_location):
+                    if os.path.exists(sendmail_default_location):
+                        os.rmdir(sendmail_default_location)
+                    
+                    os.symlink(msmtp_location, sendmail_default_location)
+                
+
+
 
         # Change the group ownership of the auditd.conf file to 'sudo'
         auditd_config_file.chown("root", "sudo")
@@ -93,15 +132,19 @@ class _AuditdConfig(_BaseConfig):
         auditd_config_file.chmod(0o660)
         auditd_config_file.save(dry_run)
 
+        # Enable and start auditd service
+        _cmd("update-rc.d", "auditd", "defaults")
+        _cmd("service", "auditd", "start")
+
         # Change the group ownership of the log files and directories to 'adm'
-        _cmd('sudo', 'chown', '-R', 'root:adm', self.log_path)
+        _cmd('chown', '-R', 'root:adm', self.log_path)
 
         # Set the appropriate permissions to allow only root and the 'adm' group to write/read
-        _cmd('sudo', 'chmod', '-R', '770', self.log_path)
+        _cmd('chmod', '-R', '770', self.log_path)
 
         # Ensure new log files created by the system inherit these permissions
-        _cmd('sudo', 'setfacl', '-d', '-m', 'g:adm:rwx', self.log_path)
-        _cmd('sudo', 'setfacl', '-d', '-m', 'o::0', self.log_path)
+        _cmd('setfacl', '-d', '-m', 'g:adm:rwx', self.log_path)
+        _cmd('setfacl', '-d', '-m', 'o::0', self.log_path)
     
 
 
@@ -113,7 +156,7 @@ class _AuditdConfig(_BaseConfig):
         valid = valid and self._opkg_helper.is_installed("auditd")
 
         # Check if auditd config
-        auditd_config_file = _ConfigFile(self.audit_config_path)
+        auditd_config_file = EqualsDelimitedConfigFile(self.audit_config_path)
         if not auditd_config_file.exists():
             valid = False
             logger.error(f"MISSING: {auditd_config_file.path} not found")
