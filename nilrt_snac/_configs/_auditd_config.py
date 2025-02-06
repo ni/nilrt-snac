@@ -2,6 +2,7 @@ import argparse
 import grp
 import os
 import re
+import socket
 import stat
 import subprocess
 from typing import List
@@ -26,7 +27,7 @@ def ensure_proper_groups(groups: List[str]) -> None:
 
 def is_valid_email(email: str) -> bool:
     "Validates an email address."
-    email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+$'
     return re.match(email_regex, email) is not None
 
 def _check_group_ownership(path: str, group: str) -> bool:
@@ -75,19 +76,26 @@ class _AuditdConfig(_BaseConfig):
 
         # Prompt for email if not provided
         audit_email = args.audit_email
+        unattended_bypass = getattr(args, 'unattended', False) or getattr(args, 'yes', False)
         if not audit_email:
             audit_email = auditd_config_file.get("action_mail_acct")
-        if not is_valid_email(audit_email):
-            audit_email = input("Please enter your audit email address (optional): ")
+        if not is_valid_email(audit_email) and not unattended_bypass:
+            audit_email = input("Please enter your audit email address: ")
+        else:
+            #Use local default e-mail
+            audit_email = f"root@{socket.gethostname()}"
+
         if is_valid_email(audit_email):
             auditd_config_file.update(r'^action_mail_acct\s*=.*$', f'action_mail_acct = {audit_email}')
             
             # Install recommended SMTP package dependency
             if not self._opkg_helper.is_installed("msmtp"):
                 self._opkg_helper.install("msmtp")
+            
 
+            msmtp_config_path = "/etc/msmtprc"
+            if not os.path.exists(msmtp_config_path):
                 # Create template msmtp configuration file
-                msmtp_config_path = "/etc/msmtprc"
                 msmtp_config = """
                 account default
                 host smtp.yourisp.com
@@ -100,18 +108,17 @@ class _AuditdConfig(_BaseConfig):
                 tls_trust_file /etc/ssl/certs/ca-certificates.crt
                 logfile /var/log/msmtp.log
                 """
+            
+                with open(msmtp_config_path, "w") as file:
+                    file.write(msmtp_config)
+                
+                # Set the appropriate permissions
+                msmtp_config_file = _ConfigFile(msmtp_config_path)
+                msmtp_config_file.chown("root", "sudo")
+                msmtp_config_file.chmod(0o660)
+                msmtp_config_file.save(dry_run)
 
-                if not os.path.exists(msmtp_config_path):
-                    with open(msmtp_config_path, "w") as file:
-                        file.write(msmtp_config)
-                    
-                    # Set the appropriate permissions
-                    msmtp_config_file = _ConfigFile(msmtp_config_path)
-                    msmtp_config_file.chown("root", "sudo")
-                    msmtp_config_file.chmod(0o660)
-                    msmtp_config_file.save(dry_run)
-
-                    print('Please add your SMTP server credentials to the msmtp configuration file at /etc/msmtprc')
+                print('Please add your SMTP server credentials to the msmtp configuration file at /etc/msmtprc')
                 
                 #Create symbolic link in order to override sendmail default location
                 sendmail_default_location = '/usr/sbin/sendmail'
@@ -121,7 +128,46 @@ class _AuditdConfig(_BaseConfig):
                         os.rmdir(sendmail_default_location)
                     
                     os.symlink(msmtp_location, sendmail_default_location)
+            
+
+            # Install auditd plugin package to allow for watch scripts to be used
+            if not self._opkg_helper.is_installed("audispd-plugins"):
+                self._opkg_helper.install("audispd-plugins")
+            
+            # Create template audit rule script to send email alerts
+            audit_rule_script_path = '/etc/audit/audit_email_alert.sh'
+            if not os.path.exists(audit_rule_script_path):
+                audit_rule_script = """
+                #!/bin/bash
+                SUBJECT="Audit Alert"
+                BODY="A critical audit event has been triggered: $1"
+                echo -e "Subject: $SUBJECT\n\n$BODY" | msmtp --from="{audit_email}" -t "{audit_email}"
+                """.format(audit_email=audit_email)
                 
+                with open(audit_rule_script_path, "w") as file:
+                    file.write(audit_rule_script)
+                
+                # Set the appropriate permissions
+                _cmd("chown", "root:sudo", audit_rule_script_path)
+                _cmd("chmod", "700", audit_rule_script_path)
+            
+            audit_email_conf_path = '/etc/audit/plugins.d/audit_email_alert.conf'
+            if not os.path.exists(audit_email_conf_path):
+                audit_email_config = """
+                active = yes
+                direction = out
+                path = {audit_rule_script_path}
+                type = always
+                """.format(audit_rule_script_path=audit_rule_script_path)
+
+                with open(audit_email_conf_path, "w") as file:
+                    file.write(audit_email_config)
+                
+                # Set the appropriate permissions
+                audit_email_file = _ConfigFile(audit_email_conf_path)
+                audit_email_file.chown("root", "sudo")
+                audit_email_file.chmod(0o600)
+                audit_email_file.save(dry_run)
 
 
 
