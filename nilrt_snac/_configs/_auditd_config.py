@@ -89,59 +89,54 @@ class _AuditdConfig(_BaseConfig):
             auditd_config_file.update(r'^action_mail_acct\s*=.*$', f'action_mail_acct = {audit_email}')
             
             # Install recommended SMTP package dependency
-            if not self._opkg_helper.is_installed("msmtp"):
-                self._opkg_helper.install("msmtp")
-            
-
-            msmtp_config_path = "/etc/msmtprc"
-            if not os.path.exists(msmtp_config_path):
-                # Create template msmtp configuration file
-                msmtp_config = """
-                account default
-                host smtp.yourisp.com
-                port 587
-                auth on
-                user your_email@domain.com
-                password your_password
-                from your_email@domain.com
-                tls on
-                tls_trust_file /etc/ssl/certs/ca-certificates.crt
-                logfile /var/log/msmtp.log
-                """
-            
-                with open(msmtp_config_path, "w") as file:
-                    file.write(msmtp_config)
-                
-                # Set the appropriate permissions
-                msmtp_config_file = _ConfigFile(msmtp_config_path)
-                msmtp_config_file.chown("root", "sudo")
-                msmtp_config_file.chmod(0o660)
-                msmtp_config_file.save(dry_run)
-
-                print('Please add your SMTP server credentials to the msmtp configuration file at /etc/msmtprc')
-                
-                #Create symbolic link in order to override sendmail default location
-                sendmail_default_location = '/usr/sbin/sendmail'
-                msmtp_location = '/usr/bin/msmtp'
-                if not os.path.islink(sendmail_default_location):
-                    if os.path.exists(sendmail_default_location):
-                        os.rmdir(sendmail_default_location)
-                    
-                    os.symlink(msmtp_location, sendmail_default_location)
-            
-
+            if not self._opkg_helper.is_installed("perl-module-net-smtp"):
+                self._opkg_helper.install("perl-module-net-smtp")
+           
             # Install auditd plugin package to allow for watch scripts to be used
             if not self._opkg_helper.is_installed("audispd-plugins"):
                 self._opkg_helper.install("audispd-plugins")
             
             # Create template audit rule script to send email alerts
-            audit_rule_script_path = '/etc/audit/audit_email_alert.sh'
+            audit_rule_script_path = '/etc/audit/audit_email_alert.pl'
             if not os.path.exists(audit_rule_script_path):
                 audit_rule_script = """
-                #!/bin/bash
-                SUBJECT="Audit Alert"
-                BODY="A critical audit event has been triggered: $1"
-                echo -e "Subject: $SUBJECT\n\n$BODY" | msmtp --from="{audit_email}" -t "{audit_email}"
+                #!/usr/bin/perl
+                use strict;
+                use warnings;
+                use Net::SMTP;
+
+                # Configuration
+                my $smtp_server = 'smtp.yourisp.com';
+                my $smtp_user = 'your_email@domain.com';
+                my $smtp_pass = 'your_password';
+                my $from = 'your_email@domain.com';
+                my $to = '{audit_email}';
+                my $subject = 'Audit Alert';
+                my $body = "A critical audit event has been triggered: $ARGV[0]";
+
+                # Create SMTP object
+                my $smtp = Net::SMTP->new($smtp_server, Timeout => 60)
+                    or die "Could not connect to SMTP server: $!";
+
+                # Authenticate
+                $smtp->auth($smtp_user, $smtp_pass)
+                    or die "SMTP authentication failed: $!";
+
+                # Send email
+                $smtp->mail($from)
+                    or die "Error setting sender: $!";
+                $smtp->to($to)
+                    or die "Error setting recipient: $!";
+                $smtp->data()
+                    or die "Error starting data: $!";
+                $smtp->datasend("To: $to\n");
+                $smtp->datasend("From: $from\n");
+                $smtp->datasend("Subject: $subject\n");
+                $smtp->datasend("\n");
+                $smtp->datasend("$body\n");
+                $smtp->dataend()
+                    or die "Error ending data: $!";
+                $smtp->quit;
                 """.format(audit_email=audit_email)
                 
                 with open(audit_rule_script_path, "w") as file:
@@ -179,8 +174,9 @@ class _AuditdConfig(_BaseConfig):
         auditd_config_file.save(dry_run)
 
         # Enable and start auditd service
-        _cmd("update-rc.d", "auditd", "defaults")
-        _cmd("service", "auditd", "start")
+        if not os.path.exists("/etc/rc2.d/S20auditd"):
+            _cmd("update-rc.d", "auditd", "defaults")
+        _cmd("service", "auditd", "restart")
 
         # Change the group ownership of the log files and directories to 'adm'
         _cmd('chown', '-R', 'root:adm', self.log_path)
