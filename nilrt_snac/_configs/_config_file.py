@@ -1,10 +1,10 @@
 """Helper class to read/write and update configuration files."""
 
-import pathlib
-import re
-import os
 import grp
+import os
+import pathlib
 import pwd
+import re
 from typing import Union
 
 from nilrt_snac import logger
