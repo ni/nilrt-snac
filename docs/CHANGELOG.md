@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 * Install and configure `auditd` in order to log system activites.
+* Install and configure `syslog-ng` in order to log system activites.
 
 ### Changed
 * Restricted write access to system logs in `/var/log` to System Maintainers (root) and Auditors via the `adm` group. 

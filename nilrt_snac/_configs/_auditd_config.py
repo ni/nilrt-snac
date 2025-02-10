@@ -3,38 +3,13 @@ import grp
 import os
 import re
 import socket
-import stat
-import subprocess
 from typing import List
 
 from nilrt_snac import logger
 from nilrt_snac._configs._base_config import _BaseConfig
+from nilrt_snac._common import _check_group_ownership, _check_owner, _check_permissions, _cmd
 from nilrt_snac._configs._config_file import EqualsDelimitedConfigFile, _ConfigFile
 from nilrt_snac.opkg import opkg_helper
-
-def _check_group_ownership(path: str, group: str) -> bool:
-    "Checks if the group ownership of a file or directory matches the specified group."    
-    stat_info = os.stat(path)
-    gid = stat_info.st_gid
-    group_info = grp.getgrgid(gid)
-    
-    return group_info.gr_name == group
-
-def _check_owner(path: str, owner: str) -> bool:
-    "Checks if the owner of a file or directory matches the specified owner."
-    stat_info = os.stat(path)
-    uid = stat_info.st_uid
-    owner_info = grp.getgrgid(uid)
-    return owner_info.gr_name == owner
-
-def _check_permissions(path: str, expected_mode: int) -> bool:
-    "Checks if the permissions of a file or directory match the expected mode."
-    stat_info = os.stat(path)
-    return stat.S_IMODE(stat_info.st_mode) == expected_mode
-
-def _cmd(*args: str):
-    "Syntactic sugar for running shell commands."
-    subprocess.run(args, check=True)
 
 def ensure_groups_exist(groups: List[str]) -> None:
     "Ensures the specified groups exist on the system."
