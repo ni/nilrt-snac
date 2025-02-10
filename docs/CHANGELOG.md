@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [Unreleased]
+### Added
+* Install and configure `auditd` in order to log system activites.
+* Install and configure `syslog-ng` in order to log system activites.
+
+### Changed
+* Restricted write access to system logs in `/var/log` to System Maintainers (root) and Auditors via the `adm` group. 
+* Restricted write access to `auditd.conf` to System Maintainers and Admins via the `sudo` group.
 
 
 ## [1.0.0] - 2024-12-16
@@ -16,7 +23,7 @@ Release corresponding to the NILRT 11.0 (2025Q1) distribution release.
 
 ### Added
 * Added a `verify` operation to non-destructively check that the system is still SNAC-compliant. (#15)
-* Added a system test fixture that sets up a wireguard tunnel between a Windows host and a SNAc device (#41).
+* Added a system test fixture that sets up a wireguard tunnel between a Windows host and a SNAC device (#41).
 
 
 ### Changed
