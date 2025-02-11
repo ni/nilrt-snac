@@ -118,7 +118,8 @@ class _AuditdConfig(_BaseConfig):
         if not audit_email:
             audit_email = auditd_config_file.get("action_mail_acct")
         if not is_valid_email(audit_email) and not unattended_bypass:
-            audit_email = input("Please enter your audit email address: ")
+            while not audit_email.strip() or not is_valid_email(audit_email):
+                audit_email = input("Please enter your audit email address: ")
         else:
             # Use local default e-mail
             audit_email = f"root@{socket.gethostname()}"
