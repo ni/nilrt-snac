@@ -78,7 +78,7 @@ def _parse_args(argv: List[str]) -> argparse.Namespace:
         help="Consent to changes",
     )
     configure_parser.add_argument(
-        "--audit_email",
+        "--audit-email",
         type=str,
         help="Email address for audit actions",
     )

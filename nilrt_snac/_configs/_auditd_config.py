@@ -36,7 +36,7 @@ def _cmd(*args: str):
     "Syntactic sugar for running shell commands."
     subprocess.run(args, check=True)
 
-def ensure_proper_groups(groups: List[str]) -> None:
+def ensure_groups_exist(groups: List[str]) -> None:
     "Ensures the specified groups exist on the system."
     for group in groups:
         try:
@@ -110,7 +110,7 @@ class _AuditdConfig(_BaseConfig):
         
         #Ensure proper groups exist
         groups_required = ["adm", "sudo"]
-        ensure_proper_groups(groups_required)
+        ensure_groups_exist(groups_required)
 
         # Prompt for email if not provided
         audit_email = args.audit_email
@@ -173,7 +173,7 @@ class _AuditdConfig(_BaseConfig):
         # Enable and start auditd service
         if not os.path.exists("/etc/rc2.d/S20auditd"):
             _cmd("update-rc.d", "auditd", "defaults")
-        _cmd("service", "auditd", "restart")
+        _cmd("/etc/init.d/auditd", "restart")
 
         # Set the appropriate permissions to allow only root and the 'adm' group to write/read
         _cmd('chown', '-R', 'root:adm', self.log_path)
