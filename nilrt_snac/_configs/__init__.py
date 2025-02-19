@@ -14,6 +14,7 @@ from nilrt_snac._configs._pwquality_config import _PWQualityConfig
 from nilrt_snac._configs._ssh_config import _SshConfig
 from nilrt_snac._configs._sudo_config import _SudoConfig
 from nilrt_snac._configs._sysapi_config import _SysAPIConfig
+from nilrt_snac._configs._syslog_ng_config import _SyslogConfig
 from nilrt_snac._configs._tmux_config import _TmuxConfig
 from nilrt_snac._configs._wifi_config import _WIFIConfig
 from nilrt_snac._configs._wireguard_config import _WireguardConfig
@@ -38,4 +39,5 @@ CONFIGS: List[_BaseConfig] = [
     _SudoConfig(),
     _FirewallConfig(),
     _AuditdConfig(),
+    _SyslogConfig(),
 ]
