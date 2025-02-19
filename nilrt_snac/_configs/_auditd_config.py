@@ -11,6 +11,7 @@ from nilrt_snac._common import _check_group_ownership, _check_owner, _check_perm
 from nilrt_snac._configs._config_file import EqualsDelimitedConfigFile, _ConfigFile
 from nilrt_snac.opkg import opkg_helper
 
+
 def ensure_groups_exist(groups: List[str]) -> None:
     "Ensures the specified groups exist on the system."
     for group in groups:
