@@ -14,26 +14,29 @@ class _ConsoleConfig(_BaseConfig):
     def configure(self, args: argparse.Namespace) -> None:
         print("Deconfiguring console access...")
 
-        if args.dry_run:
-            return
-
-        subprocess.run(
-            ["nirtcfg", "--set", "section=systemsettings,token=consoleout.enabled,value=False"],
-            check=True,
-        )
+        if not args.dry_run:
+            subprocess.run(
+                ["nirtcfg", "--set", "section=systemsettings,token=consoleout.enabled,value=False"],
+                check=True,
+            )
+        else:
+            print("Dry run: would have run nirtcfg --set section=systemsettings,token=consoleout.enabled,value=False")
         opkg.remove("sysconfig-settings-console", force_depends=True)
 
     def verify(self, args: argparse.Namespace) -> bool:
         print("Verifying console access configuration...")
         valid = True
-        result = subprocess.run(
-            ["nirtcfg", "--get", "section=systemsettings,token=consoleout.enabled"],
-            check=True,
-            stdout=subprocess.PIPE,
-        )
-        if result.stdout.decode().strip() != "False":
-            valid = False
-            logger.error("FOUND: console access not diabled")
+        if not args.dry_run:
+            result = subprocess.run(
+                ["nirtcfg", "--get", "section=systemsettings,token=consoleout.enabled"],
+                check=True,
+                stdout=subprocess.PIPE,
+            )
+            if result.stdout.decode().strip() != "False":
+                valid = False
+                logger.error("FOUND: console access not diabled")
+        else:
+            print("Dry run: would have run nirtcfg --get section=systemsettings,token=consoleout.enabled")
         if opkg.is_installed("sysconfig-settings-console"):
             valid = False
             logger.error("FOUND: sysconfig-settings-console still installed.")
