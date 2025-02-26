@@ -26,9 +26,11 @@ class _NTPConfig(_BaseConfig):
             config_file.add("server 0.us.pool.ntp.mil iburst maxpoll 16")
 
         config_file.save(dry_run)
+        logger.debug("Restarting ntp service")
         if not dry_run:
-            logger.debug("Restarting ntp service")
             subprocess.run(["/etc/init.d/ntpd", "restart"])
+        else:
+            print("Dry run: would have run /etc/init.d/ntpd restart")
 
     def verify(self, args: argparse.Namespace) -> bool:
         print("Verifying NTP configuration...")
