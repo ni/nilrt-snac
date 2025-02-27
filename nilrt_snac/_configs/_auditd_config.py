@@ -3,6 +3,7 @@ import grp
 import os
 import re
 import socket
+import textwrap
 from typing import List
 
 from nilrt_snac import logger
@@ -21,7 +22,7 @@ def ensure_groups_exist(groups: List[str]) -> None:
             logger.info(f"Group {group} created.")
 
 def format_email_template_text(audit_email: str) -> str:
-    return f"""
+    return textwrap.dedent("""\
     #!/usr/bin/perl
     use strict;
     use warnings;
@@ -59,7 +60,7 @@ def format_email_template_text(audit_email: str) -> str:
     $smtp->dataend()
         or die "Error ending data: $!";
     $smtp->quit;
-    """
+    """).format(audit_email=audit_email)
 
 def is_valid_email(email: str) -> bool:
     "Validates an email address."
@@ -119,17 +120,16 @@ class _AuditdConfig(_BaseConfig):
                     file.write(audit_rule_script)
                 
                 # Set the appropriate permissions
-                _cmd("chown", "root:sudo", audit_rule_script_path)
                 _cmd("chmod", "700", audit_rule_script_path)
             
             audit_email_conf_path = '/etc/audit/plugins.d/audit_email_alert.conf'
             if not os.path.exists(audit_email_conf_path):
-                audit_email_config = """
+                audit_email_config = textwrap.dedent("""\
                 active = yes
                 direction = out
                 path = {audit_rule_script_path}
                 type = always
-                """.format(audit_rule_script_path=audit_rule_script_path)
+                """).format(audit_rule_script_path=audit_rule_script_path)
 
                 with open(audit_email_conf_path, "w") as file:
                     file.write(audit_email_config)
