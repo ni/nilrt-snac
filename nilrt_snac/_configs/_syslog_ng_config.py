@@ -40,13 +40,7 @@ class _SyslogConfig(_BaseConfig):
             logger.error("Required syslog-ng package is not installed.")
             valid = False
 
-        # Check group ownership and permissions of syslog.conf
-        if not _check_group_ownership(self.syslog_conf_path, "adm"):
-            logger.error(f"ERROR: {self.syslog_conf_path} is not owned by the 'adm' group.")
-            valid = False
-        if not _check_permissions(self.syslog_conf_path, 0o640):
-            logger.error(f"ERROR: {self.syslog_conf_path} does not have 640 permissions.")
-            valid = False
+        # Check ownership of syslog.conf
         if not _check_owner(self.syslog_conf_path, "root"):
             logger.error(f"ERROR: {self.syslog_conf_path} is not owned by 'root'.")
             valid = False
