@@ -77,7 +77,6 @@ class _AuditdConfig(_BaseConfig):
 
     def configure(self, args: argparse.Namespace) -> None:
         print("Configuring auditd...")
-        auditd_config_file = EqualsDelimitedConfigFile(self.audit_config_path)
         dry_run: bool = args.dry_run
 
         # Check if auditd is already installed
@@ -89,6 +88,7 @@ class _AuditdConfig(_BaseConfig):
         ensure_groups_exist(groups_required)
 
         # Prompt for email if not provided
+        auditd_config_file = EqualsDelimitedConfigFile(self.audit_config_path)
         audit_email = args.audit_email
         unattended_bypass = args.yes
         if not audit_email:
