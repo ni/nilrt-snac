@@ -152,12 +152,21 @@ class _AuditdConfig(_BaseConfig):
         _cmd("/etc/init.d/auditd", "restart")
 
         # Set the appropriate permissions to allow only root and the 'adm' group to write/read
-        _cmd('chown', '-R', 'root:adm', self.log_path)
-        _cmd('chmod', '-R', '770', self.log_path)
+        init_log_permissions_path = '/etc/init.d/set_log_permissions.sh' 
+        if not os.path.exists(init_log_permissions_path):
+            init_log_permissions_script = textwrap.dedent("""\
+            #!/bin/sh
+            chmod 770 {log_path}
+            chown root:adm {log_path}
+            setfacl -d -m g:adm:rwx {log_path}
+            setfacl -d -m o::0 {log_path}
+            """).format(log_path=self.log_path)
 
-        # Ensure new log files created by the system inherit these permissions
-        _cmd('setfacl', '-d', '-m', 'g:adm:rwx', self.log_path)
-        _cmd('setfacl', '-d', '-m', 'o::0', self.log_path)
+            with open(init_log_permissions_path, "w") as file:
+                file.write(init_log_permissions_script)
+            
+            # Make the script executable
+            _cmd("chmod", "700", init_log_permissions_path)
     
 
 
