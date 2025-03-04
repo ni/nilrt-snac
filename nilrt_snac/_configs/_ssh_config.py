@@ -21,16 +21,16 @@ class _SshConfig(_BaseConfig):
         if not sshd_config_file.exists():
             valid = False
             logger.error(f"MISSING: {sshd_config_file.path} not found")
-        elif not sshd_config_file.contains("ClientAliveInterval 15"):
+        elif not sshd_config_file.contains_exact("ClientAliveInterval 15"):
             valid = False
             logger.error("MISSING: expected ClientAliveInterval value")
-        elif not sshd_config_file.contains("ClientAliveCountMax 4"):
+        elif not sshd_config_file.contains_exact("ClientAliveCountMax 4"):
             valid = False
             logger.error("MISSING: expected ClientAliveCountMax value")
         if not tmout_config_file.exists():
             valid = False
             logger.error(f"MISSING: {tmout_config_file.path} not found")
-        elif not tmout_config_file.contains("TMOUT=600"):
+        elif not tmout_config_file.contains_exact("TMOUT=600"):
             valid = False
             logger.error("MISSING: expected TMOUT value")
         return valid

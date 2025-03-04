@@ -33,7 +33,7 @@ class _SudoConfig(_BaseConfig):
         if not config_file.exists():
             valid = False
             logger.error(f"MISSING: {config_file.path} not found")
-        elif not config_file.contains("Defaults timestamp_timeout=0"):
+        elif not config_file.contains_exact("Defaults timestamp_timeout=0"):
             valid = False
             logger.error("MISSING: immediate timestamp_timeout")
         return valid

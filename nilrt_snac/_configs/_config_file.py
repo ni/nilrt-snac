@@ -83,6 +83,17 @@ class _ConfigFile:
         """
         return bool(re.search(key, self._config))
     
+    def contains_exact(self, key: str) -> bool:
+        """Check if the configuration file contains a line with the exact given key.
+
+        Args: key: RE pattern to search for in the configuration file.
+
+        Returns: True if the key is found, False otherwise.
+        """
+      
+        exact_pattern = re.compile(rf'^\s*{re.escape(key)}\s*$', re.MULTILINE)
+        return bool(exact_pattern.search(self._config))
+    
  
 class EqualsDelimitedConfigFile(_ConfigFile):
     def get(self, key: str) -> str:
