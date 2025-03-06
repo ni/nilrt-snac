@@ -59,7 +59,7 @@ class _TmuxConfig(_BaseConfig):
         if not snac_config_file.exists():
             valid = False
             logger.error(f"MISSING: {snac_config_file.path} not found")
-        elif not snac_config_file.contains("set -g lock-after-time"):
+        elif not snac_config_file.contains_exact("set -g lock-after-time 900"):
             valid = False
             logger.error("MISSING: commands to inactivity lock")
         if not profile_file.exists():

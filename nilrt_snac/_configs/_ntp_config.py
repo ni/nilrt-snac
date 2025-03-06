@@ -22,7 +22,7 @@ class _NTPConfig(_BaseConfig):
         if config_file.contains("natinst.pool.ntp.org"):
             config_file.update("^.*natinst.pool.ntp.org.*$", "")
 
-        if not config_file.contains("server 0.us.pool.ntp.mil iburst maxpoll 16"):
+        if not config_file.contains_exact("server 0.us.pool.ntp.mil iburst maxpoll 16"):
             config_file.add("server 0.us.pool.ntp.mil iburst maxpoll 16")
 
         config_file.save(dry_run)
@@ -37,7 +37,7 @@ class _NTPConfig(_BaseConfig):
         if not self._opkg_helper.is_installed("ntp"):
             valid = False
             logger.error("MISSING: ntp not installed")
-        if not config_file.contains("0.us.pool.ntp.mil iburst maxpoll 16"):
+        if not config_file.contains_exact("server 0.us.pool.ntp.mil iburst maxpoll 16"):
             valid = False
             logger.error("MISSING: designated ntp server and settings not found in config file")
         if config_file.contains("natinst.pool.ntp.org"):

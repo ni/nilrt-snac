@@ -21,7 +21,7 @@ class _OPKGConfig(_BaseConfig):
         base_feeds_config_file = _ConfigFile("/etc/opkg/base-feeds.conf")
         dry_run: bool = args.dry_run
 
-        if not snac_config_file.contains("option autoremove 1"):
+        if not snac_config_file.contains_exact("option autoremove 1"):
             snac_config_file.add(
                 textwrap.dedent(
                     """
@@ -51,7 +51,7 @@ class _OPKGConfig(_BaseConfig):
         if not snac_config_file.exists():
             valid = False
             logger.error(f"MISSING: {OPKG_SNAC_CONF} not found")
-        elif not snac_config_file.contains("option autoremove 1"):
+        elif not snac_config_file.contains_exact("option autoremove 1"):
             valid = False
             logger.error(
                 f"MISSING: 'option autoremove 1' not found in {snac_config_file.path}"

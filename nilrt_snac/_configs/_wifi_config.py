@@ -16,7 +16,7 @@ class _WIFIConfig(_BaseConfig):
         print("Configuring WiFi configuration...")
         config_file = _ConfigFile("/etc/modprobe.d/snac_blacklist.conf")
         dry_run: bool = args.dry_run
-        if not config_file.contains("install cfg80211 /bin/true"):
+        if not config_file.contains_exact("install cfg80211 /bin/true"):
             config_file.add(
                 textwrap.dedent(
                     """
@@ -43,7 +43,7 @@ class _WIFIConfig(_BaseConfig):
         if not config_file.exists():
             valid = False
             logger.error(f"MISSING: {config_file.path} not found")
-        elif not config_file.contains("install cfg80211 /bin/true"):
+        elif not config_file.contains_exact("install cfg80211 /bin/true"):
             valid = False
             logger.error("MISSING: commands to fail install of WiFi modules")
         return valid

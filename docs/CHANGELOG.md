@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Restricted write access to system logs in `/var/log` to System Maintainers (root) and Auditors via the `adm` group. 
 * Restricted write access to `auditd.conf` to System Maintainers and Admins via the `sudo` group.
 
+### Fixed
+* Corrected the `verify` operation to ensure it accurately detects configuration changes.
+
 
 ## [1.0.0] - 2024-12-16
 
