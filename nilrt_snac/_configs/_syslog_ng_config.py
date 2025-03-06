@@ -2,8 +2,7 @@ import argparse
 
 from nilrt_snac import logger
 from nilrt_snac._configs._base_config import _BaseConfig
-from nilrt_snac._configs._config_file import _ConfigFile
-from nilrt_snac._common import _check_group_ownership, _check_owner, _check_permissions, _cmd
+from nilrt_snac._common import _check_owner, _cmd
 from nilrt_snac.opkg import opkg_helper
 
 
