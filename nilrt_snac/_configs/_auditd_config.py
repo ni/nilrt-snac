@@ -151,7 +151,7 @@ class _AuditdConfig(_BaseConfig):
 
         # Set the appropriate permissions to allow only root and the 'adm' group to write/read
         init_log_permissions_path = '/etc/init.d/set_log_permissions.sh'
-        if not os.path.exists(init_log_permissions_path):
+        if not os.path.exists(init_log_permissions_path) and not dry_run:
             init_log_permissions_script = textwrap.dedent("""\
             #!/bin/sh
             chmod 770 {log_path}
@@ -165,6 +165,9 @@ class _AuditdConfig(_BaseConfig):
 
             # Make the script executable
             _cmd("chmod", "700", init_log_permissions_path)
+
+            # Schedule the script to run at start
+            _cmd(*"update-rc.d set_log_permissions.sh start 3 S .".split())
 
 
     def verify(self, args: argparse.Namespace) -> bool:
