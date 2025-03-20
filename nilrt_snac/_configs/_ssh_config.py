@@ -24,7 +24,7 @@ class _SshConfig(_BaseConfig):
                 sshd_config_file.update("ClientAliveInterval.*", self.client_alive_interval)
             else:
                 sshd_config_file.add(self.client_alive_interval)
-        
+
         if not sshd_config_file.contains_exact(self.client_alive_count_max):
             if sshd_config_file.contains("ClientAliveCountMax"):
                 sshd_config_file.update("ClientAliveCountMax.*", self.client_alive_count_max)

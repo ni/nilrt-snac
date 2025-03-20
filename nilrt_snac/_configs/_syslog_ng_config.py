@@ -27,12 +27,10 @@ class _SyslogConfig(_BaseConfig):
         # Restart syslog-ng service
         _cmd('/etc/init.d/syslog', 'restart')
 
-      
 
     def verify(self, args: argparse.Namespace) -> bool:
         print("Verifying syslog-ng configuration...")
         valid: bool = True
-
 
         # Check if syslog-ng is setup to log in /var/log
         if not self._opkg_helper.is_installed("syslog-ng"):
@@ -43,7 +41,5 @@ class _SyslogConfig(_BaseConfig):
         if not _check_owner(self.syslog_conf_path, "root"):
             logger.error(f"ERROR: {self.syslog_conf_path} is not owned by 'root'.")
             valid = False
-        
-      
 
         return valid

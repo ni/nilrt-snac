@@ -68,7 +68,6 @@ def is_valid_email(email: str) -> bool:
     return re.match(email_regex, email) is not None
 
 
-
 class _AuditdConfig(_BaseConfig):
     def __init__(self):
         self._opkg_helper = opkg_helper
@@ -82,7 +81,7 @@ class _AuditdConfig(_BaseConfig):
         # Check if auditd is already installed
         if not self._opkg_helper.is_installed("auditd"):
             self._opkg_helper.install("auditd")
-        
+
         #Ensure proper groups exist
         groups_required = ["adm", "sudo"]
         ensure_groups_exist(groups_required)
@@ -102,26 +101,26 @@ class _AuditdConfig(_BaseConfig):
 
         if is_valid_email(audit_email):
             auditd_config_file.update(r'^action_mail_acct\s*=.*$', f'action_mail_acct = {audit_email}')
-            
+
             # Install recommended SMTP package dependency
             if not self._opkg_helper.is_installed("perl-module-net-smtp"):
                 self._opkg_helper.install("perl-module-net-smtp")
-           
+
             # Install auditd plugin package to allow for watch scripts to be used
             if not self._opkg_helper.is_installed("audispd-plugins"):
                 self._opkg_helper.install("audispd-plugins")
-            
+
             # Create template audit rule script to send email alerts
             audit_rule_script_path = '/etc/audit/audit_email_alert.pl'
             if not os.path.exists(audit_rule_script_path):
                 audit_rule_script = format_email_template_text(audit_email)
-                
+
                 with open(audit_rule_script_path, "w") as file:
                     file.write(audit_rule_script)
-                
+
                 # Set the appropriate permissions
                 _cmd("chmod", "700", audit_rule_script_path)
-            
+
             audit_email_conf_path = '/etc/audit/plugins.d/audit_email_alert.conf'
             if not os.path.exists(audit_email_conf_path):
                 audit_email_config = textwrap.dedent("""\
@@ -133,13 +132,12 @@ class _AuditdConfig(_BaseConfig):
 
                 with open(audit_email_conf_path, "w") as file:
                     file.write(audit_email_config)
-                
+
                 # Set the appropriate permissions
                 audit_email_file = _ConfigFile(audit_email_conf_path)
                 audit_email_file.chown("root", "sudo")
                 audit_email_file.chmod(0o600)
                 audit_email_file.save(dry_run)
-
 
         # Set the appropriate permissions to allow only root and the 'sudo' group to read/write
         auditd_config_file.chown("root", "sudo")
@@ -152,7 +150,7 @@ class _AuditdConfig(_BaseConfig):
         _cmd("/etc/init.d/auditd", "restart")
 
         # Set the appropriate permissions to allow only root and the 'adm' group to write/read
-        init_log_permissions_path = '/etc/init.d/set_log_permissions.sh' 
+        init_log_permissions_path = '/etc/init.d/set_log_permissions.sh'
         if not os.path.exists(init_log_permissions_path):
             init_log_permissions_script = textwrap.dedent("""\
             #!/bin/sh
@@ -164,10 +162,9 @@ class _AuditdConfig(_BaseConfig):
 
             with open(init_log_permissions_path, "w") as file:
                 file.write(init_log_permissions_script)
-            
+
             # Make the script executable
             _cmd("chmod", "700", init_log_permissions_path)
-    
 
 
     def verify(self, args: argparse.Namespace) -> bool:
