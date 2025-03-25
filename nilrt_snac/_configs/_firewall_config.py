@@ -91,6 +91,7 @@ class _FirewallConfig(_BaseConfig):
                     "--add-service=ssh",
                     "--add-service=http",
                     "--add-service=https",
+                    "--add-service=syslog",
                     )
         _offlinecmd("--policy=work-out", "--set-target=REJECT")
 
