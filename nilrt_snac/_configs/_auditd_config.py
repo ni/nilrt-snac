@@ -182,20 +182,21 @@ class _AuditdConfig(_BaseConfig):
         if not auditd_config_file.exists():
             valid = False
             logger.error(f"MISSING: {auditd_config_file.path} not found")
-        elif not is_valid_email(auditd_config_file.get("action_mail_acct")):
-            valid = False
-            logger.error("MISSING: expected action_mail_acct value")
+        else:
+            if not is_valid_email(auditd_config_file.get("action_mail_acct")):
+                valid = False
+                logger.error("MISSING: expected action_mail_acct value")
 
-        # Check group ownership and permissions of auditd.conf
-        if not _check_group_ownership(self.audit_config_path, "sudo"):
-            logger.error(f"ERROR: {self.audit_config_path} is not owned by the 'sudo' group.")
-            valid = False
-        if not _check_permissions(self.audit_config_path, 0o660):
-            logger.error(f"ERROR: {self.audit_config_path} does not have 660 permissions.")
-            valid = False
-        if not _check_owner(self.audit_config_path, "root"):
-            logger.error(f"ERROR: {self.audit_config_path} is not owned by 'root'.")
-            valid = False
+            # Check group ownership and permissions of auditd.conf
+            if not _check_group_ownership(self.audit_config_path, "sudo"):
+                logger.error(f"ERROR: {self.audit_config_path} is not owned by the 'sudo' group.")
+                valid = False
+            if not _check_permissions(self.audit_config_path, 0o660):
+                logger.error(f"ERROR: {self.audit_config_path} does not have 660 permissions.")
+                valid = False
+            if not _check_owner(self.audit_config_path, "root"):
+                logger.error(f"ERROR: {self.audit_config_path} is not owned by 'root'.")
+                valid = False
 
         # Check group ownership and permissions of /var/log
         if not _check_group_ownership(self.log_path, "adm"):

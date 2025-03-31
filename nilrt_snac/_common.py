@@ -6,7 +6,7 @@ import subprocess
 
 
 def _check_group_ownership(path: str, group: str) -> bool:
-    "Checks if the group ownership of a file or directory matches the specified group."    
+    "Checks if the group ownership of a file or directory matches the specified group."
     stat_info = os.stat(path)
     gid = stat_info.st_gid
     group_info = grp.getgrgid(gid)
