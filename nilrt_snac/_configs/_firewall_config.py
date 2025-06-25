@@ -92,6 +92,7 @@ class _FirewallConfig(_BaseConfig):
                     "--add-service=http",
                     "--add-service=https",
                     "--add-service=syslog",
+                    "--add-service=ni-logos-xt",
                     )
         _offlinecmd("--policy=work-out", "--set-target=REJECT")
 
