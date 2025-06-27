@@ -14,13 +14,14 @@ class _ConsoleConfig(_BaseConfig):
     def configure(self, args: argparse.Namespace) -> None:
         print("Deconfiguring console access...")
 
-        if args.dry_run:
-            return
+        if not args.dry_run:
+            subprocess.run(
+                ["nirtcfg", "--set", "section=systemsettings,token=consoleout.enabled,value=False"],
+                check=True,
+            )
+        else:
+            print("Dry run: would have run nirtcfg --set section=systemsettings,token=consoleout.enabled,value=False")
 
-        subprocess.run(
-            ["nirtcfg", "--set", "section=systemsettings,token=consoleout.enabled,value=False"],
-            check=True,
-        )
         opkg.remove("sysconfig-settings-console", force_depends=True)
 
     def verify(self, args: argparse.Namespace) -> bool:
