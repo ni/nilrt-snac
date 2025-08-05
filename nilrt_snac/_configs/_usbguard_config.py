@@ -1,61 +1,48 @@
 import argparse
 import pathlib
-import shutil
-import subprocess
-import tempfile
 
 from nilrt_snac._configs._base_config import _BaseConfig
+from nilrt_snac._configs._config_file import EqualsDelimitedConfigFile
 
 from nilrt_snac import logger
 from nilrt_snac.opkg import opkg_helper
 
-USBGUARD_SRC_URL = (
-    "https://github.com/USBGuard/usbguard/releases/download/usbguard-1.1.2/usbguard-1.1.2.tar.gz"
-)
-
 
 class _USBGuardConfig(_BaseConfig):
+    """USBGuard configuration handler."""
+
     def __init__(self):
-        self._src_path = pathlib.Path("/usr/local/src")
+        self.config_file_path = "/etc/usbguard/usbguard-daemon.conf"
+        self.package_name = "usbguard"
         self._opkg_helper = opkg_helper
 
     def configure(self, args: argparse.Namespace) -> None:
-        print("Installing USBGuard...")
-        dry_run: bool = args.dry_run
-
-        logger.debug(f"Ensure {self._src_path} exists")
-        self._src_path.mkdir(parents=True, exist_ok=True)
-
-        logger.debug("Clean up any previous copy of USB Guard")
-        installer_path = self._src_path / "usbguard"
-        shutil.rmtree(installer_path)
-
-        logger.debug(f"Download and extract {USBGUARD_SRC_URL}")
-        # There is not proper typing support for NamedTemporaryFile
-        with tempfile.NamedTemporaryFile(delete_on_close=False) as fp:  # type: ignore
-            subprocess.run(["wget", USBGUARD_SRC_URL, "-O", fp.name], check=True)
-            subprocess.run(["tar", "xz", "-f", fp.name, "-C", self._src_path], check=True)
-
-        logger.debug("Install prereq")
-        self._opkg_helper.install("libqb-dev")
-
-        logger.debug("Configure and install USBGuard")
-        cmd = [
-            "./configure",
-            "--with-crypto-library=openssl",
-            "--with-bundled-catch",
-            "--with-bundled-pegtl",
-            "--without-dbus",
-            "--without-polkit",
-            "--prefix=/",
-        ]
-        if not dry_run:
-            subprocess.run(cmd, check=True, cwd=installer_path)
-            subprocess.run(["make", "install"], check=True, cwd=installer_path)
-            # TODO: make initscript
+        """USBGuard must be installed manually by the user."""
+        if not self._opkg_helper.is_installed(self.package_name):
+            print("USBGuard configuration: Manual installation required")
 
     def verify(self, args: argparse.Namespace) -> bool:
-        print("Verifying USBGuard configuration...")
-        valid = True
-        # TODO: figure out what needs to be verified
-        return valid
+        """Verify USBGuard configuration if the package is installed."""
+        if self._opkg_helper.is_installed(self.package_name):
+            print("Verifying usbguard configuration...")
+            conf_file = EqualsDelimitedConfigFile(self.config_file_path)
+            if not conf_file.exists():
+                logger.error(f"USBGuard config file missing: {self.config_file_path}")
+                return False
+            # We make sure we get the RuleFile that does not have a comment
+            rule_file_path = conf_file.get("RuleFile")
+            if rule_file_path == "":
+                logger.error(f"USBGuard RuleFile not specified in {self.config_file_path}")
+                return False
+            rules_file = pathlib.Path(rule_file_path)
+            if not rules_file.exists():
+                logger.error(f"USBGuard rules file missing: {rules_file_path}")
+                return False
+            if rules_file.stat().st_size == 0:
+                logger.error(f"USBGuard rules file is empty: {rules_file_path}")
+                return False
+            return True
+        else:
+            print("USBGuard is not installed; skipping verification.")
+            return True
+

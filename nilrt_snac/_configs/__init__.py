@@ -18,9 +18,7 @@ from nilrt_snac._configs._syslog_ng_config import _SyslogConfig
 from nilrt_snac._configs._tmux_config import _TmuxConfig
 from nilrt_snac._configs._wifi_config import _WIFIConfig
 from nilrt_snac._configs._wireguard_config import _WireguardConfig
-
-# USBGuard is not supported for 1.0, but may be added in the future
-# from nilrt_snac._configs._usbguard_config import _USBGuardConfig
+from nilrt_snac._configs._usbguard_config import _USBGuardConfig
 
 CONFIGS: List[_BaseConfig] = [
     _NTPConfig(),
@@ -40,4 +38,5 @@ CONFIGS: List[_BaseConfig] = [
     _FirewallConfig(),
     _AuditdConfig(),
     _SyslogConfig(),
+    _USBGuardConfig(),
 ]
