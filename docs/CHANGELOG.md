@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 * ni-logos-xt outbound traffic is now permitted on the firewall's 'work' zone. (#66)
+* `usbguard` configuration is verified when installed - requires manual installation (#68)
 
 
 ## [2.1.0] - 2025-06-12
