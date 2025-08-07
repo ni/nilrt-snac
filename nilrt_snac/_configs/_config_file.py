@@ -97,9 +97,17 @@ class _ConfigFile:
  
 class EqualsDelimitedConfigFile(_ConfigFile):
     def get(self, key: str) -> str:
-        value_pattern = rf"{key}\s*=\s*(.*)"
-        match = re.search(value_pattern, self._config)
-        if match:
-            return match.group(1).strip()
-        else:
-            return ""
+        """
+        Return the value for the first line where the left side of '=' matches the key (ignoring whitespace).
+
+        Args:
+            key: The key to search for (left side of equals).
+
+        Returns:
+            The value (right side of equals) for the first matching line, or an empty string if not found.
+        """
+        for line in self._config.splitlines():
+            parts = line.split("=", 1)
+            if len(parts) > 1 and parts[0].replace(" ","").replace("\t","") == key:
+                return parts[1].strip()
+        return ""
