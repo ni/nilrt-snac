@@ -46,8 +46,8 @@ class _USBGuardConfig(_BaseConfig):
             if not _check_group_ownership(str(rules_file), "root"):
                 logger.error(f"ERROR: {rules_file} is not owned by the 'root' group.")
                 return False
-            if not _check_permissions(str(rules_file), 0o640):
-                logger.error(f"ERROR: {rules_file} does not have 640 permissions.")
+            if not _check_permissions(str(rules_file), 0o600):
+                logger.error(f"ERROR: {rules_file} does not have 600 permissions.")
                 return False
             if not _check_owner(str(rules_file), "root"):
                 logger.error(f"ERROR: {rules_file} is not owned by 'root'.")
