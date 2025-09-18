@@ -8,9 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2025-09-18
+
+Release corresponding to the LV 2025Q4 / NILRT 11.3 release.
+
+### Added
+* When `usbguard` is installed to the NILRT system, `nilrt-snac verify` will now verify that it is enabled and has a valid configuration. (#68)
+
 ### Changed
 * ni-logos-xt outbound traffic is now permitted on the firewall's 'work' zone. (#66)
-* `usbguard` configuration is verified when installed - requires manual installation (#68)
 
 
 ## [2.1.0] - 2025-06-12
