@@ -13,7 +13,7 @@ class _WIFIConfig(_BaseConfig):
         pass
 
     def configure(self, args: argparse.Namespace) -> None:
-        print("Configuring WiFi configuration...")
+        print("Disabling WiFi support...")
         config_file = _ConfigFile("/etc/modprobe.d/snac_blacklist.conf")
         dry_run: bool = args.dry_run
         if not config_file.contains_exact("install cfg80211 /bin/true"):
@@ -37,13 +37,17 @@ class _WIFIConfig(_BaseConfig):
             subprocess.run(["rmmod", "cfg80211", "mac80211"], check=False)
 
     def verify(self, args: argparse.Namespace) -> bool:
-        print("Verifying WiFi configuration...")
+        print("Verifying WiFi support disabled...")
         config_file = _ConfigFile("/etc/modprobe.d/snac_blacklist.conf")
         valid = True
         if not config_file.exists():
             valid = False
             logger.error(f"MISSING: {config_file.path} not found")
-        elif not config_file.contains_exact("install cfg80211 /bin/true"):
+        if not config_file.contains_exact("install cfg80211 /bin/true"):
             valid = False
-            logger.error("MISSING: commands to fail install of WiFi modules")
+            logger.error(
+                "MISSING: The line 'install cfg80211 /bin/true' was not found in "
+                f"{config_file.path}. This command is required to prevent WiFi kernel modules from loading. "
+                "Please ensure the file contains the necessary 'install' directives to fully disable WiFi support."
+            )
         return valid

@@ -8,15 +8,17 @@ from nilrt_snac import logger
 
 
 class _GraphicalConfig(_BaseConfig):
-    """The graphical configuration for SNAC is to deconfigure the X11, embedded UI, and other components that are only useful when using the graphical UI.
-    """
+    """The graphical configuration for SNAC is to deconfigure the X11, embedded UI, and other components that are only useful when using the graphical UI."""
 
     def configure(self, args: Namespace) -> None:
         print("Deconfiguring the graphical UI...")
-        if args.dry_run:
-            return
+        if not args.dry_run:
+            logger.debug("Disabling the embedded UI...")
+            run(
+                ["nirtcfg", "--set", "section=systemsettings,token=ui.enabled,value=False"],
+                check=True,
+            )
 
-        run(["nirtcfg", "--set", "section=systemsettings,token=ui.enabled,value=False"], check=True)
         opkg.remove("packagegroup-ni-graphical", autoremove=True)
         opkg.remove("packagegroup-core-x11", autoremove=True)
 
