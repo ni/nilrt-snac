@@ -10,7 +10,7 @@ from nilrt_snac import logger
 
 class _WIFIConfig(_BaseConfig):
     def __init__(self):
-        pass
+        super().__init__("wifi")
 
     def configure(self, args: argparse.Namespace) -> None:
         print("Disabling WiFi support...")

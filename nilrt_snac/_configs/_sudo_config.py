@@ -9,7 +9,7 @@ from nilrt_snac import logger
 
 class _SudoConfig(_BaseConfig):
     def __init__(self):
-        pass  # Nothing to do for now
+        super().__init__("sudo")
 
     def configure(self, args: argparse.Namespace) -> None:
         print("Configuring sudo...")

@@ -8,6 +8,7 @@ from nilrt_snac import logger
 
 class _SshConfig(_BaseConfig):
     def __init__(self):
+        super().__init__("ssh")
         self.ssh_config_path = "/etc/ssh/sshd_config"
         self.tmout_config_path = "/etc/profile.d/tmout.sh"
         self.client_alive_interval = "ClientAliveInterval 15"
@@ -38,7 +39,6 @@ class _SshConfig(_BaseConfig):
             else:
                 tmout_config_file.add(self.tmout)
         tmout_config_file.save(dry_run)
-
 
     def verify(self, args: argparse.Namespace) -> bool:
         print("Verifying ssh configuration...")

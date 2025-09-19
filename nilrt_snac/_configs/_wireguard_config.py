@@ -12,6 +12,7 @@ from nilrt_snac.opkg import opkg_helper
 
 class _WireguardConfig(_BaseConfig):
     def __init__(self):
+        super().__init__("wireguard")
         self._sysconnf_path = pathlib.Path("/etc/wireguard")
         self._opkg_helper = opkg_helper
 

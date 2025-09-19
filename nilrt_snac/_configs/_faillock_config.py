@@ -8,6 +8,7 @@ from nilrt_snac.opkg import opkg_helper
 
 class _FaillockConfig(_BaseConfig):
     def __init__(self):
+        super().__init__("faillock")
         self._opkg_helper = opkg_helper
 
     def configure(self, args: argparse.Namespace) -> None:

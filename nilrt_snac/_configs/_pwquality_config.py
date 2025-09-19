@@ -10,11 +10,12 @@ from nilrt_snac.opkg import opkg_helper
 
 class _PWQualityConfig(_BaseConfig):
     def __init__(self):
+        super().__init__("pwquality")
         self._opkg_helper = opkg_helper
 
     def configure(self, args: argparse.Namespace) -> None:
         print("Configuring Password quality...")
-        opasswd_file = _ConfigFile("/etc/security/opasswd") # contains password history
+        opasswd_file = _ConfigFile("/etc/security/opasswd")  # contains password history
         config_file = _ConfigFile("/etc/pam.d/common-password")
         dry_run: bool = args.dry_run
         self._opkg_helper.install("libpwquality")
@@ -31,7 +32,7 @@ class _PWQualityConfig(_BaseConfig):
                     # check for password complexity
                     password	requisite	pam_pwquality.so retry=3
                     \1"""
-                )
+                ),
             )
 
         config_file.save(dry_run)

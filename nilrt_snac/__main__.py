@@ -3,24 +3,55 @@
 import argparse
 import logging
 import sys
-from typing import List, Optional
+import configparser
+from pathlib import Path
+from typing import Dict, List, Optional
 
 from nilrt_snac._pre_reqs import verify_prereqs
 from nilrt_snac.opkg import opkg_helper
 from nilrt_snac._configs import CONFIGS
-
-
 from nilrt_snac import Errors, logger, SNACError, __version__
 
 PROG_NAME = "nilrt-snac"
-VERSION_DESCRIPTION = \
-f"""\
+VERSION_DESCRIPTION = f"""\
 nilrt-snac {__version__}
 Copyright (C) 2024 NI (Emerson Electric)
 License MIT: MIT License <https://spdx.org/licenses/MIT.html>
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 """
+
+
+def _get_enabled_modules(config_file_path: Path = Path("/etc/snac/snac.conf")) -> Dict[str, bool]:
+    """Read the config file and return a dict of module enabled states. Strict validation and error reporting."""
+    enabled_modules: Dict[str, bool] = {}
+    valid_names = {c.name for c in CONFIGS}
+    if config_file_path.exists():
+        parser = configparser.ConfigParser()
+        try:
+            parser.read(str(config_file_path))
+        except (configparser.MissingSectionHeaderError, configparser.ParsingError) as e:
+            raise SNACError(f"Malformed config file: {config_file_path}", Errors.EX_USAGE)
+        if not parser.has_section("modules"):
+            logger.warning(
+                f"Config file {config_file_path} missing [modules] section. All modules will be enabled."
+            )
+            return enabled_modules
+        for name, value in parser.items("modules"):
+            key = name.strip().lower()
+            val = value.strip().lower()
+            if key not in valid_names:
+                raise SNACError(
+                    f"Unknown module name '{key}' in config file: {config_file_path}. Valid names: {sorted(valid_names)}",
+                    Errors.EX_USAGE,
+                )
+            if val not in ("enabled", "disabled"):
+                raise SNACError(
+                    f"Invalid value for module '{key}' in config file: '{value}'. Must be 'enabled' or 'disabled'.",
+                    Errors.EX_USAGE,
+                )
+            enabled_modules[key] = val == "enabled"
+    return enabled_modules
 
 
 def _configure(args: argparse.Namespace) -> int:
@@ -38,7 +69,15 @@ def _configure(args: argparse.Namespace) -> int:
 
     print("Configuring SNAC mode.")
     opkg_helper.update()
+
+    # Read /etc/snac/snac.conf for module enable/disable
+    enabled_modules = _get_enabled_modules()
+
     for config in CONFIGS:
+        enabled = enabled_modules.get(config.name, True)
+        if not enabled:
+            logger.info(f"Skipping configuration for: {config.name} (disabled in config file)")
+            continue
         config.configure(args)
 
     print("!! A reboot is now required to affect your system configuration. !!")
@@ -51,7 +90,15 @@ def _verify(args: argparse.Namespace) -> int:
     """Configure SNAC mode."""
     print("Validating SNAC mode.")
     valid = True
+
+    # Read /etc/snac/snac.conf for module enable/disable
+    enabled_modules = _get_enabled_modules()
+
     for config in CONFIGS:
+        enabled = enabled_modules.get(config.name, True)
+        if not enabled:
+            logger.info(f"Skipping verification for: {config.name} (disabled in config file)")
+            continue
         new_valid = config.verify(args)
         valid = valid and new_valid
 
@@ -139,7 +186,7 @@ def main(  # noqa: D103 - Missing docstring in public function (auto-generated n
     if args.cmd is None:
         logger.error("Command required: {configure, verify}, see --help for more information.")
         return Errors.EX_USAGE
-    
+
     try:
         if not args.dry_run:
             verify_prereqs()
@@ -149,6 +196,7 @@ def main(  # noqa: D103 - Missing docstring in public function (auto-generated n
         return e.return_code
 
     return ret_val
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

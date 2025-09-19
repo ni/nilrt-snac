@@ -9,7 +9,7 @@ from nilrt_snac import logger
 
 class _ConsoleConfig(_BaseConfig):
     def __init__(self):
-        pass  # Nothing to do for now
+        super().__init__("console")
 
     def configure(self, args: argparse.Namespace) -> None:
         print("Deconfiguring console access...")

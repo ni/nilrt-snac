@@ -8,6 +8,7 @@ from nilrt_snac.opkg import opkg_helper
 
 class _SysAPIConfig(_BaseConfig):
     def __init__(self):
+        super().__init__("sysapi")
         self._opkg_helper = opkg_helper
 
     def configure(self, args: argparse.Namespace) -> None:

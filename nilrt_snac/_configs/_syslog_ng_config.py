@@ -8,6 +8,7 @@ from nilrt_snac.opkg import opkg_helper
 
 class _SyslogConfig(_BaseConfig):
     def __init__(self):
+        super().__init__("syslog")
         self._opkg_helper = opkg_helper
         self.syslog_conf_path = "/etc/syslog-ng/syslog-ng.conf"
 

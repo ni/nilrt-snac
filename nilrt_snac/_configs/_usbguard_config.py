@@ -13,6 +13,7 @@ class _USBGuardConfig(_BaseConfig):
     """USBGuard configuration handler."""
 
     def __init__(self):
+        super().__init__("usbguard")
         self.config_file_path = "/etc/usbguard/usbguard-daemon.conf"
         self.package_name = "usbguard"
         self._opkg_helper = opkg_helper
