@@ -13,8 +13,7 @@ from nilrt_snac._configs import CONFIGS
 from nilrt_snac import Errors, logger, SNACError, __version__
 
 PROG_NAME = "nilrt-snac"
-VERSION_DESCRIPTION = \
-f"""\
+VERSION_DESCRIPTION = f"""\
 nilrt-snac {__version__}
 Copyright (C) 2024 NI (Emerson Electric)
 License MIT: MIT License <https://spdx.org/licenses/MIT.html>
@@ -38,7 +37,11 @@ def _configure(args: argparse.Namespace) -> int:
 
     print("Configuring SNAC mode.")
     opkg_helper.update()
-    for config in CONFIGS:
+    skip_configs = args.skip_config
+    for key, config in CONFIGS.items():
+        if key in skip_configs:
+            logger.info(f"Skipping configuration for: {key}")
+            continue
         config.configure(args)
 
     print("!! A reboot is now required to affect your system configuration. !!")
@@ -51,7 +54,11 @@ def _verify(args: argparse.Namespace) -> int:
     """Configure SNAC mode."""
     print("Validating SNAC mode.")
     valid = True
-    for config in CONFIGS:
+    skip_configs = args.skip_config
+    for key, config in CONFIGS.items():
+        if key in skip_configs:
+            logger.info(f"Skipping verification for: {key}")
+            continue
         new_valid = config.verify(args)
         valid = valid and new_valid
 
@@ -70,6 +77,11 @@ def _parse_args(argv: List[str]) -> argparse.Namespace:
     subparsers = parser.add_subparsers(help="Commands for SNAC mode.", dest="cmd")
     subparsers.required = False
 
+    config_keys = ", ".join(CONFIGS.keys())
+    skip_help = (
+        f"Configurations to skip (can be specified multiple times). Valid keys: {config_keys}"
+    )
+
     configure_parser = subparsers.add_parser("configure", help="Set SNAC mode")
     configure_parser.add_argument(
         "-y",
@@ -82,9 +94,21 @@ def _parse_args(argv: List[str]) -> argparse.Namespace:
         type=str,
         help="Email address for audit actions",
     )
+    configure_parser.add_argument(
+        "--skip-config",
+        action="append",
+        default=[],
+        help=skip_help,
+    )
     configure_parser.set_defaults(func=_configure)
 
     verify_parser = subparsers.add_parser("verify", help="Verify SNAC mode configured correctly")
+    verify_parser.add_argument(
+        "--skip-config",
+        action="append",
+        default=[],
+        help=skip_help,
+    )
     verify_parser.set_defaults(func=_verify)
 
     debug_group = parser.add_argument_group("Debug")
@@ -139,7 +163,7 @@ def main(  # noqa: D103 - Missing docstring in public function (auto-generated n
     if args.cmd is None:
         logger.error("Command required: {configure, verify}, see --help for more information.")
         return Errors.EX_USAGE
-    
+
     try:
         if not args.dry_run:
             verify_prereqs()
@@ -149,6 +173,7 @@ def main(  # noqa: D103 - Missing docstring in public function (auto-generated n
         return e.return_code
 
     return ret_val
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 
 from nilrt_snac._configs._auditd_config import _AuditdConfig
 from nilrt_snac._configs._base_config import _BaseConfig
@@ -20,23 +20,23 @@ from nilrt_snac._configs._wifi_config import _WIFIConfig
 from nilrt_snac._configs._wireguard_config import _WireguardConfig
 from nilrt_snac._configs._usbguard_config import _USBGuardConfig
 
-CONFIGS: List[_BaseConfig] = [
-    _NTPConfig(),
-    _OPKGConfig(),
-    _WireguardConfig(),
-    _CryptSetupConfig(),
-    _NIAuthConfig(),
-    _WIFIConfig(),
-    _FaillockConfig(),
-    _GraphicalConfig(),
-    _ConsoleConfig(),
-    _SysAPIConfig(),
-    _TmuxConfig(),
-    _PWQualityConfig(),
-    _SshConfig(),
-    _SudoConfig(),
-    _FirewallConfig(),
-    _AuditdConfig(),
-    _SyslogConfig(),
-    _USBGuardConfig(),
-]
+CONFIGS: Dict[str, _BaseConfig] = {
+    "ntp": _NTPConfig(),
+    "opkg": _OPKGConfig(),
+    "wireguard": _WireguardConfig(),
+    "cryptsetup": _CryptSetupConfig(),
+    "niauth": _NIAuthConfig(),
+    "wifi": _WIFIConfig(),
+    "faillock": _FaillockConfig(),
+    "graphical": _GraphicalConfig(),
+    "console": _ConsoleConfig(),
+    "sysapi": _SysAPIConfig(),
+    "tmux": _TmuxConfig(),
+    "pwquality": _PWQualityConfig(),
+    "ssh": _SshConfig(),
+    "sudo": _SudoConfig(),
+    "firewall": _FirewallConfig(),
+    "auditd": _AuditdConfig(),
+    "syslog": _SyslogConfig(),
+    "usbguard": _USBGuardConfig(),
+}
