@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+* Add support for `/etc/snac/snac.conf` to control which modules are configured
+
 ## [3.0.0] - 2025-09-18
 
 Release corresponding to the LV 2025Q4 / NILRT 11.3 release.
