@@ -42,6 +42,7 @@ SRC_FILES = \
 	src/nilrt-snac-conflicts/control \
 	src/ni-wireguard-labview/ni-wireguard-labview.initd \
 	src/ni-wireguard-labview/wglv0.conf \
+	src/snac.conf \
 	src/nilrt-snac \
 
 DIST_FILES = \
@@ -93,6 +94,11 @@ install : all mkinstalldirs $(DIST_FILES)
 	install --mode=0644 -t "$(DESTDIR)$(datarootdir)/$(PACKAGE)" \
 		src/nilrt-snac-conflicts/nilrt-snac-conflicts.ipk
 
+	# snac configuration file
+	install --mode=0444 \
+		src/snac.conf \
+		"$(DESTDIR)$(docdir)/$(PACKAGE)/snac.conf.example"
+
 	# ni-wireguard-labview
 	install --mode=0660 \
 		src/ni-wireguard-labview/wglv0.conf \
@@ -122,6 +128,7 @@ installcheck :
 
 
 mkinstalldirs :
+	mkdir -p --mode=0744 "$(DESTDIR)/etc/snac"
 	mkdir -p --mode=0700 "$(DESTDIR)/etc/wireguard"
 	mkdir -p --mode=0755 "$(DESTDIR)/etc/init.d"
 	mkdir -p "$(DESTDIR)$(datarootdir)/$(PACKAGE)"
@@ -138,6 +145,7 @@ uninstall :
 	rm -rvf "$(DESTDIR)$(libdir)/$(PACKAGE)"
 
 	# files
+	rm -vf "$(DESTDIR)/etc/snac/snac.conf"
 	rm -vf "$(DESTDIR)/etc/init.d/ni-wireguard-labview"
 	rm -vf "$(DESTDIR)/etc/wireguard"/wglv0.*
 	rm -vf "$(DESTDIR)$(sbindir)/nilrt-snac"
