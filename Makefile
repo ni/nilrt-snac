@@ -42,6 +42,7 @@ SRC_FILES = \
 	src/nilrt-snac-conflicts/control \
 	src/ni-wireguard-labview/ni-wireguard-labview.initd \
 	src/ni-wireguard-labview/wglv0.conf \
+	src/snac.conf \
 	src/nilrt-snac \
 
 DIST_FILES = \
@@ -93,6 +94,11 @@ install : all mkinstalldirs $(DIST_FILES)
 	install --mode=0644 -t "$(DESTDIR)$(datarootdir)/$(PACKAGE)" \
 		src/nilrt-snac-conflicts/nilrt-snac-conflicts.ipk
 
+	# snac configuration file
+	install --mode=0444 \
+		src/snac.conf \
+		"$(DESTDIR)$(docdir)/$(PACKAGE)/snac.conf.example"
+
 	# ni-wireguard-labview
 	install --mode=0660 \
 		src/ni-wireguard-labview/wglv0.conf \
@@ -142,3 +148,4 @@ uninstall :
 	rm -vf "$(DESTDIR)/etc/wireguard"/wglv0.*
 	rm -vf "$(DESTDIR)$(sbindir)/nilrt-snac"
 	rm -vf "$(DESTDIR)$(nirococonfdir)/x-niroco-static-port.ini"
+	rm -vf "$(DESTDIR)$(docdir)/$(PACKAGE)/snac.conf.example"
