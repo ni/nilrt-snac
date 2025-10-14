@@ -2,6 +2,7 @@ from typing import List
 
 from nilrt_snac._configs._auditd_config import _AuditdConfig
 from nilrt_snac._configs._base_config import _BaseConfig
+from nilrt_snac._configs._clamav_config import _ClamAVConfig
 from nilrt_snac._configs._console_config import _ConsoleConfig
 from nilrt_snac._configs._cryptsetup_config import _CryptSetupConfig
 from nilrt_snac._configs._faillock_config import _FaillockConfig
@@ -39,4 +40,5 @@ CONFIGS: List[_BaseConfig] = [
     _AuditdConfig(),
     _SyslogConfig(),
     _USBGuardConfig(),
+    _ClamAVConfig(),
 ]
