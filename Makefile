@@ -135,6 +135,7 @@ mkinstalldirs :
 	mkdir -p "$(DESTDIR)$(libdir)/$(PACKAGE)"
 	mkdir -p "$(DESTDIR)$(sbindir)"
 	mkdir -p "$(DESTDIR)$(nirococonfdir)"
+	mkdir -p --mode=0750 "$(DESTDIR)/var/log/nilrt-snac"
 
 
 uninstall :
@@ -149,3 +150,6 @@ uninstall :
 	rm -vf "$(DESTDIR)$(sbindir)/nilrt-snac"
 	rm -vf "$(DESTDIR)$(nirococonfdir)/x-niroco-static-port.ini"
 	rm -vf "$(DESTDIR)$(docdir)/$(PACKAGE)/snac.conf.example"
+
+	# Note: log directory is NOT removed to preserve audit logs
+	# Admins should manually remove /var/log/nilrt-snac if desired

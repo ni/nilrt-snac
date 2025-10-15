@@ -11,6 +11,7 @@ from nilrt_snac._pre_reqs import verify_prereqs
 from nilrt_snac.opkg import opkg_helper
 from nilrt_snac._configs import CONFIGS
 from nilrt_snac import Errors, logger, SNACError, __version__
+from nilrt_snac._logging import logging_context, print_log_location
 
 PROG_NAME = "nilrt-snac"
 VERSION_DESCRIPTION = f"""\
@@ -129,9 +130,19 @@ def _parse_args(argv: List[str]) -> argparse.Namespace:
         type=str,
         help="Email address for audit actions",
     )
+    configure_parser.add_argument(
+        "--no-log",
+        action="store_true",
+        help="Suppress automatic logging to /var/log/nilrt-snac",
+    )
     configure_parser.set_defaults(func=_configure)
 
     verify_parser = subparsers.add_parser("verify", help="Verify SNAC mode configured correctly")
+    verify_parser.add_argument(
+        "--no-log",
+        action="store_true",
+        help="Suppress automatic logging to /var/log/nilrt-snac",
+    )
     verify_parser.set_defaults(func=_verify)
 
     debug_group = parser.add_argument_group("Debug")
@@ -187,14 +198,23 @@ def main(  # noqa: D103 - Missing docstring in public function (auto-generated n
         logger.error("Command required: {configure, verify}, see --help for more information.")
         return Errors.EX_USAGE
 
-    try:
-        if not args.dry_run:
-            verify_prereqs()
-        ret_val = args.func(args)
-    except SNACError as e:
-        logger.error(e)
-        return e.return_code
+    # Determine if logging should be enabled
+    # Logging is enabled for configure and verify commands unless --no-log is specified
+    enable_logging = not args.no_log
 
+    # Wrap execution in logging context if enabled
+    with logging_context(args.cmd, argv[1:], enabled=enable_logging) as log_path:
+        try:
+            if not args.dry_run:
+                verify_prereqs()
+            ret_val = args.func(args)
+
+        except SNACError as e:
+            logger.error(e)
+            return e.return_code
+
+    # Print log location at the end of successful execution
+    print_log_location(log_path)
     return ret_val
 
 
