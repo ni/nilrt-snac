@@ -1,6 +1,6 @@
 import argparse
 import grp
-import os
+import pathlib
 import re
 import socket
 import textwrap
@@ -77,8 +77,11 @@ class _AuditdConfig(_BaseConfig):
     def __init__(self):
         super().__init__("auditd")
         self._opkg_helper = opkg_helper
-        self.log_path = os.path.realpath("/var/log")
-        self.audit_config_path = "/etc/audit/auditd.conf"
+        self.log_path = pathlib.Path("/var/log")
+        self.audit_config_path = pathlib.Path("/etc/audit/auditd.conf")
+        self.audit_rule_script_path = pathlib.Path("/etc/audit/audit_email_alert.pl")
+        self.audit_email_conf_path = pathlib.Path("/etc/audit/plugins.d/audit_email_alert.conf")
+        self.init_log_permissions_path = pathlib.Path("/etc/init.d/set_log_permissions.sh")
 
     def configure(self, args: argparse.Namespace) -> None:
         print("Configuring auditd...")
@@ -119,18 +122,15 @@ class _AuditdConfig(_BaseConfig):
                 self._opkg_helper.install("audispd-plugins")
 
             # Create template audit rule script to send email alerts
-            audit_rule_script_path = "/etc/audit/audit_email_alert.pl"
-            if not os.path.exists(audit_rule_script_path):
+            audit_rule_script_file = _ConfigFile(self.audit_rule_script_path)
+            if not audit_rule_script_file.exists():
                 audit_rule_script = format_email_template_text(audit_email)
+                audit_rule_script_file.add(audit_rule_script)
+                audit_rule_script_file.chmod(0o700)
+                audit_rule_script_file.save(dry_run)
 
-                with open(audit_rule_script_path, "w") as file:
-                    file.write(audit_rule_script)
-
-                # Set the appropriate permissions
-                _cmd("chmod", "700", audit_rule_script_path)
-
-            audit_email_conf_path = "/etc/audit/plugins.d/audit_email_alert.conf"
-            if not os.path.exists(audit_email_conf_path):
+            audit_email_conf_file = _ConfigFile(self.audit_email_conf_path)
+            if not audit_email_conf_file.exists():
                 audit_email_config = textwrap.dedent(
                     """\
                 active = yes
@@ -138,30 +138,27 @@ class _AuditdConfig(_BaseConfig):
                 path = {audit_rule_script_path}
                 type = always
                 """
-                ).format(audit_rule_script_path=audit_rule_script_path)
+                ).format(audit_rule_script_path=str(self.audit_rule_script_path))
 
-                with open(audit_email_conf_path, "w") as file:
-                    file.write(audit_email_config)
-
-                # Set the appropriate permissions
-                audit_email_file = _ConfigFile(audit_email_conf_path)
-                audit_email_file.chown("root", "sudo")
-                audit_email_file.chmod(0o600)
-                audit_email_file.save(dry_run)
+                audit_email_conf_file.add(audit_email_config)
+                audit_email_conf_file.chown("root", "sudo")
+                audit_email_conf_file.chmod(0o600)
+                audit_email_conf_file.save(dry_run)
 
         # Set the appropriate permissions to allow only root and the 'sudo' group to read/write
         auditd_config_file.chown("root", "sudo")
         auditd_config_file.chmod(0o660)
         auditd_config_file.save(dry_run)
 
-        # Enable and start auditd service
-        if not os.path.exists("/etc/rc2.d/S20auditd"):
-            _cmd("update-rc.d", "auditd", "defaults")
-        _cmd("/etc/init.d/auditd", "restart")
+        if not dry_run:
+            # Enable and start auditd service
+            if not pathlib.Path("/etc/rc2.d/S20auditd").exists():
+                _cmd("update-rc.d", "auditd", "defaults")
+            _cmd("/etc/init.d/auditd", "restart")
 
         # Set the appropriate permissions to allow only root and the 'adm' group to write/read
-        init_log_permissions_path = "/etc/init.d/set_log_permissions.sh"
-        if not os.path.exists(init_log_permissions_path) and not dry_run:
+        init_log_permissions_file = _ConfigFile(self.init_log_permissions_path)
+        if not init_log_permissions_file.exists():
             init_log_permissions_script = textwrap.dedent(
                 """\
             #!/bin/sh
@@ -170,16 +167,15 @@ class _AuditdConfig(_BaseConfig):
             setfacl -d -m g:adm:rwx {log_path}
             setfacl -d -m o::0 {log_path}
             """
-            ).format(log_path=self.log_path)
+            ).format(log_path=str(self.log_path))
 
-            with open(init_log_permissions_path, "w") as file:
-                file.write(init_log_permissions_script)
+            init_log_permissions_file.add(init_log_permissions_script)
+            init_log_permissions_file.chmod(0o700)
+            init_log_permissions_file.save(dry_run)
 
-            # Make the script executable
-            _cmd("chmod", "700", init_log_permissions_path)
-
-            # Schedule the script to run at start
-            _cmd(*"update-rc.d set_log_permissions.sh start 3 S .".split())
+            if not dry_run:
+                # Schedule the script to run at start
+                _cmd(*"update-rc.d set_log_permissions.sh start 3 S .".split())
 
     def verify(self, args: argparse.Namespace) -> bool:
         print("Verifying auditd configuration...")
@@ -199,24 +195,24 @@ class _AuditdConfig(_BaseConfig):
                 logger.error("MISSING: expected action_mail_acct value")
 
             # Check group ownership and permissions of auditd.conf
-            if not _check_group_ownership(self.audit_config_path, "sudo"):
+            if not _check_group_ownership(str(self.audit_config_path), "sudo"):
                 logger.error(f"ERROR: {self.audit_config_path} is not owned by the 'sudo' group.")
                 valid = False
-            if not _check_permissions(self.audit_config_path, 0o660):
+            if not _check_permissions(str(self.audit_config_path), 0o660):
                 logger.error(f"ERROR: {self.audit_config_path} does not have 660 permissions.")
                 valid = False
-            if not _check_owner(self.audit_config_path, "root"):
+            if not _check_owner(str(self.audit_config_path), "root"):
                 logger.error(f"ERROR: {self.audit_config_path} is not owned by 'root'.")
                 valid = False
 
         # Check group ownership and permissions of /var/log
-        if not _check_group_ownership(self.log_path, "adm"):
+        if not _check_group_ownership(str(self.log_path), "adm"):
             logger.error(f"ERROR: {self.log_path} is not owned by the 'adm' group.")
             valid = False
-        if not _check_permissions(self.log_path, 0o770):
+        if not _check_permissions(str(self.log_path), 0o770):
             logger.error(f"ERROR: {self.log_path} does not have 770 permissions.")
             valid = False
-        if not _check_owner(self.log_path, "root"):
+        if not _check_owner(str(self.log_path), "root"):
             logger.error(f"ERROR: {self.log_path} is not owned by 'root'.")
             valid = False
 
