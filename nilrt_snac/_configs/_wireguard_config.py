@@ -40,16 +40,17 @@ class _WireguardConfig(_BaseConfig):
 
         if not config_file.contains("^PrivateKey = .+") and not private_key.exists():
             logger.debug("Generating wireguard keypair....")
-            result = subprocess.run(["wg", "genkey"], stdout=subprocess.PIPE, check=True)
-            priv_key = result.stdout.decode().strip()
-            private_key.add(priv_key)
-            private_key.chmod(0o600)
-            result = subprocess.run(
-                ["wg", "pubkey"], input=priv_key, text=True, stdout=subprocess.PIPE, check=True
-            )
-            pub_key = result.stdout.strip()
-            public_key.add(pub_key)
-            public_key.chmod(0o600)
+            if not dry_run:
+                result = subprocess.run(["wg", "genkey"], stdout=subprocess.PIPE, check=True)
+                priv_key = result.stdout.decode().strip()
+                private_key.add(priv_key)
+                private_key.chmod(0o600)
+                result = subprocess.run(
+                    ["wg", "pubkey"], input=priv_key, text=True, stdout=subprocess.PIPE, check=True
+                )
+                pub_key = result.stdout.strip()
+                public_key.add(pub_key)
+                public_key.chmod(0o600)
 
         config_file.save(dry_run)
         private_key.save(dry_run)
