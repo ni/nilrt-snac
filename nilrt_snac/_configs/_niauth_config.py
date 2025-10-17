@@ -1,7 +1,7 @@
 import argparse
-import subprocess
 
 from nilrt_snac._configs._base_config import _BaseConfig
+from nilrt_snac._logging import run_with_logging
 
 from nilrt_snac import logger, SNAC_DATA_DIR
 from nilrt_snac.opkg import opkg_helper
@@ -22,7 +22,7 @@ class _NIAuthConfig(_BaseConfig):
 
         if not dry_run:
             logger.debug("Removing root password")
-            subprocess.run(["passwd", "-d", "root"], check=True)
+            run_with_logging("passwd", "-d", "root", check=True)
 
     def verify(self, args: argparse.Namespace) -> bool:
         print("Verifying NIAuth...")

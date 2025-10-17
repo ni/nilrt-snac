@@ -2,6 +2,7 @@ import argparse
 import subprocess
 
 from nilrt_snac._configs._base_config import _BaseConfig
+from nilrt_snac._logging import run_with_logging
 
 from nilrt_snac import logger
 from nilrt_snac.opkg import opkg_helper
@@ -9,12 +10,12 @@ from nilrt_snac.opkg import opkg_helper
 
 def _cmd(*args: str):
     "Syntactic sugar for firewall-cmd -q."
-    subprocess.run(["firewall-cmd", "-q"] + list(args), check=True)
+    run_with_logging("firewall-cmd", "-q", *args, check=True)
 
 
 def _offlinecmd(*args: str):
     "Syntactic sugar for firewall-offline-cmd -q."
-    subprocess.run(["firewall-offline-cmd", "-q"] + list(args), check=True)
+    run_with_logging("firewall-offline-cmd", "-q", *args, check=True)
 
 
 def _check_target(policy: str, expected: str = "REJECT") -> bool:
