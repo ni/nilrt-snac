@@ -3,10 +3,10 @@ import pathlib
 import subprocess
 import textwrap
 
+from nilrt_snac import logger
 from nilrt_snac._configs._base_config import _BaseConfig
 from nilrt_snac._configs._config_file import _ConfigFile
-
-from nilrt_snac import logger
+from nilrt_snac._logging import run_with_logging
 from nilrt_snac.opkg import opkg_helper
 
 
@@ -58,25 +58,23 @@ class _WireguardConfig(_BaseConfig):
         ifplug_conf.save(dry_run)
         if not dry_run:
             logger.debug("Restating wireguard service")
-            subprocess.run(
-                [
-                    "update-rc.d",
-                    "ni-wireguard-labview",
-                    "start",
-                    "03",
-                    "3",
-                    "4",
-                    "5",
-                    ".",
-                    "stop",
-                    "05",
-                    "0",
-                    "6",
-                    ".",
-                ],
+            run_with_logging(
+                "update-rc.d",
+                "ni-wireguard-labview",
+                "start",
+                "03",
+                "3",
+                "4",
+                "5",
+                ".",
+                "stop",
+                "05",
+                "0",
+                "6",
+                ".",
                 check=True,
             )
-            subprocess.run(["/etc/init.d/ni-wireguard-labview", "restart"], check=True)
+            run_with_logging("/etc/init.d/ni-wireguard-labview", "restart", check=True)
 
     def verify(self, args: argparse.Namespace) -> bool:
         print("Verifying wireguard configuration...")

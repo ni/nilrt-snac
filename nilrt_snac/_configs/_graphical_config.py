@@ -1,7 +1,7 @@
 from argparse import Namespace
-from subprocess import run
 
 from nilrt_snac._configs._base_config import _BaseConfig
+from nilrt_snac._logging import run_with_logging
 from nilrt_snac.opkg import opkg_helper as opkg
 
 from nilrt_snac import logger
@@ -17,8 +17,8 @@ class _GraphicalConfig(_BaseConfig):
         print("Deconfiguring the graphical UI...")
         if not args.dry_run:
             logger.debug("Disabling the embedded UI...")
-            run(
-                ["nirtcfg", "--set", "section=systemsettings,token=ui.enabled,value=False"],
+            run_with_logging(
+                "nirtcfg", "--set", "section=systemsettings,token=ui.enabled,value=False",
                 check=True,
             )
 
