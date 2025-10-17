@@ -5,6 +5,7 @@ from typing import List
 
 from nilrt_snac import logger
 from nilrt_snac._common import get_distro
+from nilrt_snac._logging import run_with_logging
 
 OPKG_SNAC_CONF = "/etc/opkg/snac.conf"
 
@@ -50,7 +51,7 @@ class OpkgHelper:  # noqa: D101 - Missing docstring in public class (auto-genera
                 cmd.append("--force-reinstall")
             cmd.append(package)
             if not self._dry_run:
-                subprocess.run(cmd, check=True)
+                run_with_logging(*cmd, check=True)
             self._installed_packages.append(package)
         else:
             logger.debug(f"{package} already installed")
@@ -83,7 +84,7 @@ class OpkgHelper:  # noqa: D101 - Missing docstring in public class (auto-genera
 
         cmd.append(package)
         if not self._dry_run:
-            subprocess.run(cmd, check=(not ignore_installed))
+            run_with_logging(*cmd, check=(not ignore_installed))
         if not ignore_installed:
             self._installed_packages.remove(package)
             

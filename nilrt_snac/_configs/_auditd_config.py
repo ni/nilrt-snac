@@ -79,7 +79,7 @@ class _AuditdConfig(_BaseConfig):
         self._opkg_helper = opkg_helper
         self.log_path = pathlib.Path("/var/log")
         self.audit_config_path = pathlib.Path("/etc/audit/auditd.conf")
-        self.audit_rule_script_path = pathlib.Path("/etc/audit/audit_email_alert.pl")
+        self.audit_email_rule_path = pathlib.Path("/etc/audit/audit_email_alert.pl")
         self.audit_email_conf_path = pathlib.Path("/etc/audit/plugins.d/audit_email_alert.conf")
         self.init_log_permissions_path = pathlib.Path("/etc/init.d/set_log_permissions.sh")
 
@@ -122,12 +122,12 @@ class _AuditdConfig(_BaseConfig):
                 self._opkg_helper.install("audispd-plugins")
 
             # Create template audit rule script to send email alerts
-            audit_rule_script_file = _ConfigFile(self.audit_rule_script_path)
-            if not audit_rule_script_file.exists():
-                audit_rule_script = format_email_template_text(audit_email)
-                audit_rule_script_file.add(audit_rule_script)
-                audit_rule_script_file.chmod(0o700)
-                audit_rule_script_file.save(dry_run)
+            audit_email_rule_file = _ConfigFile(self.audit_email_rule_path)
+            if not audit_email_rule_file.exists():
+                audit_email_rule_script = format_email_template_text(audit_email)
+                audit_email_rule_file.add(audit_email_rule_script)
+                audit_email_rule_file.chmod(0o700)
+                audit_email_rule_file.save(dry_run)
 
             audit_email_conf_file = _ConfigFile(self.audit_email_conf_path)
             if not audit_email_conf_file.exists():
@@ -138,7 +138,7 @@ class _AuditdConfig(_BaseConfig):
                 path = {audit_rule_script_path}
                 type = always
                 """
-                ).format(audit_rule_script_path=str(self.audit_rule_script_path))
+                ).format(audit_rule_script_path=str(self.audit_email_rule_path))
 
                 audit_email_conf_file.add(audit_email_config)
                 audit_email_conf_file.chown("root", "sudo")

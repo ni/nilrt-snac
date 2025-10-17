@@ -1,8 +1,8 @@
 import argparse
-import subprocess
 
 from nilrt_snac._configs._base_config import _BaseConfig
 from nilrt_snac._configs._config_file import _ConfigFile
+from nilrt_snac._logging import run_with_logging
 
 from nilrt_snac import logger
 from nilrt_snac.opkg import opkg_helper
@@ -29,7 +29,7 @@ class _NTPConfig(_BaseConfig):
         config_file.save(dry_run)
         if not dry_run:
             logger.debug("Restarting ntp service")
-            subprocess.run(["/etc/init.d/ntpd", "restart"])
+            run_with_logging("/etc/init.d/ntpd", "restart", check=False)
 
     def verify(self, args: argparse.Namespace) -> bool:
         print("Verifying NTP configuration...")
