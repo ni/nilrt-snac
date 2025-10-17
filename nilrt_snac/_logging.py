@@ -11,8 +11,9 @@ import grp
 import logging
 import datetime
 import platform
+import subprocess
 from pathlib import Path
-from typing import Optional, TextIO, List
+from typing import Optional, TextIO, List, Any, Dict
 from contextlib import contextmanager
 
 from nilrt_snac import logger, SNACError, Errors
@@ -89,30 +90,18 @@ class _TeeStream:
 
 
 def _create_log_directory() -> None:
-    """Create the log directory with proper permissions.
+    """Create the log directory with proper permissions."""
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
 
-    Raises:
-        SNACError: If directory creation fails
-    """
+    # Set directory permissions
+    os.chmod(LOG_DIR, DIR_PERMISSIONS)
+
+    # Set group ownership to 'adm' if it exists
     try:
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-
-        # Set directory permissions
-        os.chmod(LOG_DIR, DIR_PERMISSIONS)
-
-        # Set group ownership to 'adm' if it exists
-        try:
-            adm_gid = grp.getgrnam(LOG_GROUP).gr_gid
-            os.chown(LOG_DIR, -1, adm_gid)  # -1 means don't change owner
-        except KeyError:
-            logger.warning(f"Group '{LOG_GROUP}' not found. Log directory will use default group.")
-
-    except PermissionError as e:
-        raise SNACError(
-            f"Permission denied creating log directory {LOG_DIR}: {e}", Errors.EX_BAD_ENVIRONMENT
-        )
-    except OSError as e:
-        raise SNACError(f"Failed to create log directory {LOG_DIR}: {e}", Errors.EX_BAD_ENVIRONMENT)
+        adm_gid = grp.getgrnam(LOG_GROUP).gr_gid
+        os.chown(LOG_DIR, -1, adm_gid)  # -1 means don't change owner
+    except KeyError:
+        logger.warning(f"Group '{LOG_GROUP}' not found. Log directory will use default group.")
 
 
 def _generate_log_filename(command: str) -> str:
@@ -124,6 +113,7 @@ def _generate_log_filename(command: str) -> str:
     Returns:
         Filename string like 'configure-20251015-143022.log'
     """
+    # If NTP is not synchronized, this may produce a date/time portion that is not consistent
     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     return f"{command}-{timestamp}.log"
 
@@ -171,8 +161,68 @@ def _write_log_footer(log_file: TextIO, return_code: int) -> None:
     log_file.flush()
 
 
+def run_with_logging(*args, **kwargs) -> subprocess.CompletedProcess:
+    """Run a subprocess command with real-time output capture to logs.
+
+    This function wraps subprocess execution to ensure all output is captured
+    to log files while maintaining real-time console output. It streams output
+    line-by-line as the subprocess runs, so the output flows through sys.stdout
+    which is captured by the _TeeStream when logging is active.
+
+    Args:
+        *args: Command and arguments to execute
+        **kwargs: Additional keyword arguments for subprocess.Popen
+            - check: If True (default), raise CalledProcessError on non-zero exit
+            - All other kwargs are passed to subprocess.Popen
+
+    Returns:
+        subprocess.CompletedProcess with the command, return code, and captured output
+
+    Raises:
+        subprocess.CalledProcessError: If check=True and the command returns non-zero
+
+    Example:
+        run_with_logging("opkg", "install", "package-name", check=True)
+        run_with_logging("ls", "-la", check=False)
+    """
+    # Extract check parameter (default to True for compatibility with subprocess.run)
+    check = kwargs.pop("check", True)
+
+    # Force output capture and streaming
+    kwargs["stdout"] = subprocess.PIPE
+    kwargs["stderr"] = subprocess.STDOUT
+    kwargs["text"] = True
+    kwargs["bufsize"] = 1  # Line buffered for real-time output
+
+    # Start the process
+    process = subprocess.Popen(args, **kwargs)
+
+    # Collect output for return value
+    output_lines = []
+
+    # Stream output line by line as it's produced
+    # This writes to sys.stdout, which is captured by _TeeStream when logging is active
+    if process.stdout:
+        for line in process.stdout:
+            sys.stdout.write(line)
+            sys.stdout.flush()
+            output_lines.append(line)
+
+    # Wait for process to complete
+    returncode = process.wait()
+
+    # Raise exception if requested and command failed
+    if check and returncode != 0:
+        raise subprocess.CalledProcessError(returncode, args)
+
+    # Return CompletedProcess for compatibility with subprocess.run
+    return subprocess.CompletedProcess(
+        args=args, returncode=returncode, stdout="".join(output_lines) if output_lines else ""
+    )
+
+
 @contextmanager
-def logging_context(command: str, args: List[str], enabled: bool = True):
+def logging_context(command: str, args: List[str]):
     """Context manager that captures all output to a log file.
 
     This context manager replaces stdout and stderr with tee streams that
@@ -183,21 +233,16 @@ def logging_context(command: str, args: List[str], enabled: bool = True):
     Args:
         command: The command being executed (configure or verify)
         args: Command line arguments for the log header
-        enabled: Whether logging is enabled (can be disabled via --no-log)
 
     Yields:
-        Path to the log file, or None if logging is disabled
+        None
 
     Example:
-        with logging_context('configure', sys.argv[1:]) as log_path:
+        with logging_context('configure', sys.argv[1:]):
             # Your code here
             pass
         # Log path is printed automatically
     """
-    if not enabled:
-        yield None
-        return
-
     # Create log directory (this will fail fast if there are permission issues)
     _create_log_directory()
 
@@ -243,21 +288,9 @@ def logging_context(command: str, args: List[str], enabled: bool = True):
                 # Redirect handler to the new tee'd stderr
                 handler.stream = sys.stderr
 
-        # Yield the log path to the caller
-        yield log_path
+        # Yield to the caller
+        yield
 
-    except FileExistsError:
-        # This should be rare, but handle the case where the file already exists
-        raise SNACError(
-            f"Log file {log_path} already exists. This may indicate a clock issue or rapid re-execution.",
-            Errors.EX_ERROR,
-        )
-    except PermissionError as e:
-        raise SNACError(
-            f"Permission denied creating log file {log_path}: {e}", Errors.EX_BAD_ENVIRONMENT
-        )
-    except OSError as e:
-        raise SNACError(f"Failed to create log file {log_path}: {e}", Errors.EX_BAD_ENVIRONMENT)
     finally:
         # Restore original streams for all logging handlers
         for handler, original_stream in original_handler_streams:
@@ -265,19 +298,6 @@ def logging_context(command: str, args: List[str], enabled: bool = True):
                 handler.stream = original_stream
             except Exception:
                 pass  # Ignore errors during restoration
-
-        # Restore original stdout and stderr
-        sys.stdout = original_stdout
-        sys.stderr = original_stderr
-
-        # Close log file if it was opened
-        if log_file is not None:
-            try:
-                # Write footer if we got this far
-                _write_log_footer(log_file, 0)  # We don't know the real return code here
-                log_file.close()
-            except Exception:
-                pass  # Ignore errors during cleanup
 
         # Restore original streams (even in case of errors)
         sys.stdout = original_stdout
@@ -289,15 +309,6 @@ def logging_context(command: str, args: List[str], enabled: bool = True):
                 # Write footer if we got this far
                 _write_log_footer(log_file, 0)  # We don't know the real return code here
                 log_file.close()
+                print(f"\nLog saved to: {log_path}")
             except Exception:
                 pass  # Ignore errors during cleanup
-
-
-def print_log_location(log_path: Optional[Path]) -> None:
-    """Print the location of the log file to the user.
-
-    Args:
-        log_path: Path to the log file, or None if logging was disabled
-    """
-    if log_path is not None:
-        print(f"\nLog saved to: {log_path}")

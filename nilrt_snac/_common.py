@@ -2,7 +2,8 @@ import grp
 import os
 import pathlib
 import stat
-import subprocess
+
+from nilrt_snac._logging import run_with_logging
 
 
 def _check_group_ownership(path: str, group: str) -> bool:
@@ -13,6 +14,7 @@ def _check_group_ownership(path: str, group: str) -> bool:
 
     return group_info.gr_name == group
 
+
 def _check_owner(path: str, owner: str) -> bool:
     "Checks if the owner of a file or directory matches the specified owner."
     stat_info = os.stat(path)
@@ -20,14 +22,17 @@ def _check_owner(path: str, owner: str) -> bool:
     owner_info = grp.getgrgid(uid)
     return owner_info.gr_name == owner
 
+
 def _check_permissions(path: str, expected_mode: int) -> bool:
     "Checks if the permissions of a file or directory match the expected mode."
     stat_info = os.stat(path)
     return stat.S_IMODE(stat_info.st_mode) == expected_mode
 
+
 def _cmd(*args: str):
-    "Syntactic sugar for running shell commands."
-    subprocess.run(args, check=True)
+    "Syntactic sugar for running shell commands with proper logging."
+    run_with_logging(*args, check=True)
+
 
 def get_distro():
     try:

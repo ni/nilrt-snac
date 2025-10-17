@@ -1,9 +1,9 @@
 import argparse
-import subprocess
 import textwrap
 
 from nilrt_snac._configs._base_config import _BaseConfig
 from nilrt_snac._configs._config_file import _ConfigFile
+from nilrt_snac._logging import run_with_logging
 
 from nilrt_snac import logger
 
@@ -34,7 +34,7 @@ class _WIFIConfig(_BaseConfig):
         if not dry_run:
             logger.debug("Removing any WiFi modules in memory")
             # We do not check for success. If the modules are not loaded, this will return an error
-            subprocess.run(["rmmod", "cfg80211", "mac80211"], check=False)
+            run_with_logging("rmmod", "cfg80211", "mac80211", check=False)
 
     def verify(self, args: argparse.Namespace) -> bool:
         print("Verifying WiFi support disabled...")

@@ -3,6 +3,7 @@ import pathlib
 import subprocess
 
 from nilrt_snac._common import get_distro
+from nilrt_snac._logging import run_with_logging
 from nilrt_snac.opkg import opkg_helper
 
 from nilrt_snac import Errors, SNACError, logger
@@ -25,7 +26,7 @@ def _check_iptables():
 
     logger.debug("  Ensuring iptables is loaded")
     try:
-        subprocess.run(["iptables", "-L"])
+        run_with_logging("iptables", "-L", check=False)
     except Exception:
         raise SNACError("Failed to load iptables.", Errors.EX_CHECK_FAILURE)
 
