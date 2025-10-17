@@ -11,8 +11,9 @@ import grp
 import logging
 import datetime
 import platform
+import subprocess
 from pathlib import Path
-from typing import Optional, TextIO, List
+from typing import Optional, TextIO, List, Any, Dict
 from contextlib import contextmanager
 
 from nilrt_snac import logger, SNACError, Errors
@@ -169,6 +170,68 @@ def _write_log_footer(log_file: TextIO, return_code: int) -> None:
     ]
     log_file.write("\n".join(footer))
     log_file.flush()
+
+
+def run_with_logging(*args, **kwargs) -> subprocess.CompletedProcess:
+    """Run a subprocess command with real-time output capture to logs.
+    
+    This function wraps subprocess execution to ensure all output is captured
+    to log files while maintaining real-time console output. It streams output
+    line-by-line as the subprocess runs, so the output flows through sys.stdout
+    which is captured by the _TeeStream when logging is active.
+    
+    Args:
+        *args: Command and arguments to execute
+        **kwargs: Additional keyword arguments for subprocess.Popen
+            - check: If True (default), raise CalledProcessError on non-zero exit
+            - All other kwargs are passed to subprocess.Popen
+    
+    Returns:
+        subprocess.CompletedProcess with the command, return code, and captured output
+    
+    Raises:
+        subprocess.CalledProcessError: If check=True and the command returns non-zero
+    
+    Example:
+        run_with_logging("opkg", "install", "package-name", check=True)
+        run_with_logging("ls", "-la", check=False)
+    """
+    # Extract check parameter (default to True for compatibility with subprocess.run)
+    check = kwargs.pop('check', True)
+    
+    # Force output capture and streaming
+    kwargs['stdout'] = subprocess.PIPE
+    kwargs['stderr'] = subprocess.STDOUT
+    kwargs['text'] = True
+    kwargs['bufsize'] = 1  # Line buffered for real-time output
+    
+    # Start the process
+    process = subprocess.Popen(args, **kwargs)
+    
+    # Collect output for return value
+    output_lines = []
+    
+    # Stream output line by line as it's produced
+    # This writes to sys.stdout, which is captured by _TeeStream when logging is active
+    if process.stdout:
+        for line in process.stdout:
+            sys.stdout.write(line)
+            sys.stdout.flush()
+            output_lines.append(line)
+    
+    # Wait for process to complete
+    returncode = process.wait()
+    
+    # Raise exception if requested and command failed
+    if check and returncode != 0:
+        raise subprocess.CalledProcessError(returncode, args)
+    
+    # Return CompletedProcess for compatibility with subprocess.run
+    return subprocess.CompletedProcess(
+        args=args,
+        returncode=returncode,
+        stdout=''.join(output_lines) if output_lines else ''
+    )
 
 
 @contextmanager

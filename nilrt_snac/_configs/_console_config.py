@@ -2,6 +2,7 @@ import argparse
 import subprocess
 
 from nilrt_snac._configs._base_config import _BaseConfig
+from nilrt_snac._logging import run_with_logging
 from nilrt_snac.opkg import opkg_helper as opkg
 
 from nilrt_snac import logger
@@ -16,8 +17,8 @@ class _ConsoleConfig(_BaseConfig):
 
         if not args.dry_run:
             logger.debug("Disabling console access...")
-            subprocess.run(
-                ["nirtcfg", "--set", "section=systemsettings,token=consoleout.enabled,value=False"],
+            run_with_logging(
+                "nirtcfg", "--set", "section=systemsettings,token=consoleout.enabled,value=False",
                 check=True,
             )
 

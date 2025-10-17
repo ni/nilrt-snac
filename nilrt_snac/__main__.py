@@ -199,7 +199,7 @@ def main(  # noqa: D103 - Missing docstring in public function (auto-generated n
         return Errors.EX_USAGE
 
     # Determine if logging should be enabled
-    # Logging is enabled for configure and verify commands unless --no-log is specified
+    # Logging is enabled unless --no-log is specified
     enable_logging = not args.no_log
 
     # Wrap execution in logging context if enabled
@@ -208,13 +208,13 @@ def main(  # noqa: D103 - Missing docstring in public function (auto-generated n
             if not args.dry_run:
                 verify_prereqs()
             ret_val = args.func(args)
-
         except SNACError as e:
             logger.error(e)
-            return e.return_code
+            ret_val = e.return_code
 
-    # Print log location at the end of successful execution
+    # Print log location at the end of execution
     print_log_location(log_path)
+
     return ret_val
 
 
