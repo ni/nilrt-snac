@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-* Add support for `/etc/snac/snac.conf` to control which modules are configured
+* Add `ClamAV` antivirus verification support (#77)
+  * When ClamAV packages are installed, `nilrt-snac verify` validates configuration files (`clamd.conf`, `freshclam.conf`) and virus signature databases (`.cvd`, `.cld` files)
 
 ## [3.0.0] - 2025-09-18
 
