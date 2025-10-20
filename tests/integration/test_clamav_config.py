@@ -1,8 +1,10 @@
 """Test ClamAV configuration verification."""
 
 import argparse
+import io
 import pathlib
 import tempfile
+from contextlib import redirect_stdout
 from unittest.mock import patch
 
 from nilrt_snac._configs._clamav_config import _ClamAVConfig
@@ -28,10 +30,17 @@ class TestClamAVConfig:
 
         # Mock opkg_helper to return False for all packages
         with patch.object(config._opkg_helper, "is_installed", return_value=False):
+            # Capture stdout to verify the skip message
+            captured_output = io.StringIO()
             args = argparse.Namespace()
-            result = config.verify(args)
-
+            
+            with redirect_stdout(captured_output):
+                result = config.verify(args)
+            
+            # Verify it returns True for the right reason
             assert result is True
+            output = captured_output.getvalue()
+            assert "ClamAV is not installed; skipping verification." in output
 
     def test_verify_installed_missing_config_files(self):
         """Test verify when ClamAV is installed but config files missing."""
