@@ -151,7 +151,6 @@ class _ClamAVConfig(_BaseConfig):
         # Ensure directories exist
         os.makedirs("/etc/clamav", exist_ok=True)
         os.makedirs("/var/lib/clamav", exist_ok=True)
-        os.makedirs("/var/log/clamav", exist_ok=True)
         
         # Set proper ownership and permissions for directories
         try:
