@@ -153,17 +153,33 @@ class _ClamAVConfig(_BaseConfig):
         os.makedirs("/var/lib/clamav", exist_ok=True)
         os.makedirs("/var/log/clamav", exist_ok=True)
         
-        # Set proper ownership for directories
+        # Set proper ownership and permissions for directories
         try:
             import pwd
             import grp
             clamav_uid = pwd.getpwnam("clamav").pw_uid
             clamav_gid = grp.getgrnam("clamav").gr_gid
             
+            # Set ownership and make directories writable
             os.chown("/var/lib/clamav", clamav_uid, clamav_gid)
-            os.chown("/var/log/clamav", clamav_uid, clamav_gid)
+            os.chmod("/var/lib/clamav", 0o755)
+            
+            # Create freshclam log file with proper ownership
+            freshclam_log = "/var/lib/clamav/freshclam.log"
+            if not os.path.exists(freshclam_log):
+                with open(freshclam_log, 'w') as f:
+                    f.write("# ClamAV freshclam log file\n")
+                os.chown(freshclam_log, clamav_uid, clamav_gid)
+                os.chmod(freshclam_log, 0o644)
+                
         except (KeyError, OSError) as e:
             logger.warning(f"Could not set clamav ownership: {e}")
+            # As fallback, make directories world-writable for manual operation
+            try:
+                os.chmod("/var/lib/clamav", 0o777)
+                logger.info("Set /var/lib/clamav to world-writable as fallback")
+            except Exception:
+                pass
         
         # Configure freshclam.conf if it doesn't exist or is minimal
         self._setup_freshclam_config()
@@ -181,9 +197,9 @@ class _ClamAVConfig(_BaseConfig):
         """Setup freshclam configuration file."""
         freshclam_config_content = """# Freshclam configuration for NILRT (Manual mode)
 DatabaseDirectory /var/lib/clamav
-# UpdateLogFile /var/lib/clamav/freshclam.log
+UpdateLogFile /var/lib/clamav/freshclam.log
 LogVerbose yes
-LogSyslog yes
+LogSyslog no
 LogFacility LOG_LOCAL6
 DatabaseOwner clamav
 DNSDatabaseInfo current.cvd.clamav.net
@@ -381,6 +397,7 @@ MaxRecHWP3 16
     def _create_wrapper_script(self) -> None:
         """Create the ClamAV scan wrapper script."""
         wrapper_script_path = "/usr/local/bin/clamav-scan"
+        os.makedirs("/usr/local/bin", exist_ok=True)
         wrapper_script_content = '''#!/bin/bash
 
 # ClamAV Scan Wrapper Script for NILRT
