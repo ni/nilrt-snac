@@ -28,6 +28,8 @@ class _ClamAVConfig(_BaseConfig):
         if not installed_packages:
             print("Installing ClamAV packages...")
             self._install_clamav_packages()
+            # Fix any DNS issues caused by ClamAV installation
+            self._fix_dns_configuration()
         else:
             print(f"ClamAV packages already installed: {', '.join(installed_packages)}")
         
@@ -38,12 +40,12 @@ class _ClamAVConfig(_BaseConfig):
         print("\n" + "="*60)
         print("CLAMAV INSTALLATION COMPLETED")
         print("="*60)
-        print("✓ ClamAV packages installed")
-        print("✓ Configuration files created")
-        print("✓ Manual-only operation configured")
-        print("✓ Wrapper script created: /usr/local/bin/clamav-scan")
+        print("* ClamAV packages installed")
+        print("* Configuration files created")
+        print("* Manual-only operation configured")
+        print("* Wrapper script created: /usr/local/bin/clamav-scan")
         print()
-        print("⚠ VIRUS SIGNATURES NOT INSTALLED")
+        print(" VIRUS SIGNATURES NOT INSTALLED")
         print("ClamAV requires virus signature databases to function.")
         print()
         print("TO INSTALL VIRUS SIGNATURES, CHOOSE ONE METHOD:")
@@ -52,18 +54,18 @@ class _ClamAVConfig(_BaseConfig):
         print("   sudo freshclam")
         print()
         print("2. OFFLINE METHOD (using IPK packages):")
-        print("   • Download clamav-db-*.ipk from your package source")
-        print("   • Copy to target system")
-        print("   • Install: sudo opkg install clamav-db-*.ipk")
+        print("   - Download clamav-db-*.ipk from your package source")
+        print("   - Copy to target system")
+        print("   - Install: sudo opkg install clamav-db-*.ipk")
         print()
         print("3. MANUAL FILE COPY:")
-        print("   • Copy *.cvd and *.cld files to /var/lib/clamav/")
-        print("   • Set ownership: sudo chown clamav:clamav /var/lib/clamav/*")
+        print("   - Copy *.cvd and *.cld files to /var/lib/clamav/")
+        print("   - Set ownership: sudo chown clamav:clamav /var/lib/clamav/*")
         print()
         print("USAGE AFTER SIGNATURE INSTALLATION:")
-        print("• To scan: sudo clamav-scan")
-        print("• To update signatures: sudo freshclam")
-        print("• To verify installation: nilrt-snac verify clamav")
+        print("- To scan: sudo clamav-scan")
+        print("- To update signatures: sudo freshclam")
+        print("- To verify installation: nilrt-snac verify clamav")
         print("="*60)
 
     def verify(self, args: argparse.Namespace) -> bool:
@@ -127,6 +129,9 @@ class _ClamAVConfig(_BaseConfig):
     def _install_clamav_packages(self) -> None:
         """Install ClamAV packages using opkg."""
         try:
+            # Backup DNS configuration before installation
+            self._backup_dns_configuration()
+            
             # Update package list first
             print("Updating package list...")
             self._opkg_helper.update()
@@ -185,9 +190,6 @@ class _ClamAVConfig(_BaseConfig):
         
         # Configure clamd.conf if it doesn't exist or is minimal
         self._setup_clamd_config()
-        
-        # Fix potential DNS/resolv.conf issues
-        self._fix_dns_configuration()
         
         # Disable automatic daemon startup
         self._disable_automatic_services()
@@ -371,24 +373,82 @@ MaxRecHWP3 16
         except Exception as e:
             logger.warning(f"Could not disable automatic services: {e}")
 
-    def _fix_dns_configuration(self) -> None:
-        """Fix DNS configuration issues that ClamAV installation might cause."""
-        # Check if /etc/resolv.conf is a broken symlink and fix it
+    def _backup_dns_configuration(self) -> None:
+        """Backup DNS configuration before ClamAV installation."""
         resolv_conf_path = "/etc/resolv.conf"
+        backup_path = "/etc/resolv.conf.nilrt-backup"
         
         try:
-            if os.path.islink(resolv_conf_path) and not os.path.exists(resolv_conf_path):
-                logger.warning("Found broken /etc/resolv.conf symlink, fixing...")
+            if os.path.exists(resolv_conf_path) and not os.path.exists(backup_path):
+                # If it's a regular file, backup the content
+                if os.path.isfile(resolv_conf_path) and not os.path.islink(resolv_conf_path):
+                    import shutil
+                    shutil.copy2(resolv_conf_path, backup_path)
+                    logger.info("Backed up existing /etc/resolv.conf")
+                # If it's a working symlink, backup the target content
+                elif os.path.islink(resolv_conf_path) and os.path.exists(resolv_conf_path):
+                    with open(resolv_conf_path, 'r') as src, open(backup_path, 'w') as dst:
+                        dst.write(src.read())
+                    logger.info("Backed up DNS configuration from symlink target")
+        except Exception as e:
+            logger.warning(f"Could not backup DNS configuration: {e}")
+
+    def _fix_dns_configuration(self) -> None:
+        """Fix DNS configuration issues that ClamAV installation might cause."""
+        resolv_conf_path = "/etc/resolv.conf"
+        backup_path = "/etc/resolv.conf.nilrt-backup"
+        
+        try:
+            # Check if resolv.conf is broken or missing
+            needs_fix = False
+            
+            if not os.path.exists(resolv_conf_path):
+                logger.warning("/etc/resolv.conf missing after ClamAV installation")
+                needs_fix = True
+            elif os.path.islink(resolv_conf_path) and not os.path.exists(resolv_conf_path):
+                logger.warning("Found broken /etc/resolv.conf symlink after ClamAV installation")
                 os.unlink(resolv_conf_path)
+                needs_fix = True
+            elif os.path.isfile(resolv_conf_path):
+                # Check if file is empty or has no nameservers
+                with open(resolv_conf_path, 'r') as f:
+                    content = f.read()
+                if not content.strip() or 'nameserver' not in content:
+                    logger.warning("/etc/resolv.conf is empty or has no nameservers")
+                    needs_fix = True
+            
+            if needs_fix:
+                # Try to restore from backup first
+                if os.path.exists(backup_path):
+                    logger.info("Restoring DNS configuration from backup")
+                    import shutil
+                    shutil.copy2(backup_path, resolv_conf_path)
+                else:
+                    # Create a functional resolv.conf with reliable DNS servers
+                    logger.info("Creating new DNS configuration")
+                    with open(resolv_conf_path, 'w') as f:
+                        f.write("# DNS configuration restored by nilrt-snac after ClamAV installation\n")
+                        f.write("nameserver 8.8.8.8\n")
+                        f.write("nameserver 8.8.4.4\n")
+                        f.write("nameserver 1.1.1.1\n")
                 
-                # Create a basic resolv.conf
-                with open(resolv_conf_path, 'w') as f:
-                    f.write("# Generated by nilrt-snac ClamAV configuration\n")
-                    f.write("nameserver 8.8.8.8\n")
-                    f.write("nameserver 8.8.4.4\n")
-                    f.write("nameserver 1.1.1.1\n")
-                
+                # Set proper permissions
+                os.chmod(resolv_conf_path, 0o644)
                 logger.info("Fixed /etc/resolv.conf DNS configuration")
+                
+                # Test DNS resolution
+                try:
+                    import subprocess
+                    result = subprocess.run(['nslookup', 'google.com'], 
+                                          capture_output=True, timeout=5)
+                    if result.returncode == 0:
+                        logger.info("DNS resolution test passed")
+                    else:
+                        logger.warning("DNS resolution test failed, but configuration created")
+                except Exception:
+                    logger.info("DNS configuration created (resolution test unavailable)")
+            else:
+                logger.info("DNS configuration is working properly")
                 
         except Exception as e:
             logger.warning(f"Could not fix DNS configuration: {e}")
