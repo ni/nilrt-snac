@@ -8,6 +8,11 @@ resources:
   - repository: DevCentral/ni-central
     type: git
     name: ni-central
+  - repository: Tools
+    type: git
+    name: DevCentral/Tools
+    # Use an old version of setup-venv.yml
+    ref: 1034f8129f933c91c24abbd737e429590e3f23ff
 
 parameters:
 - name: rtos_oetest_locked_pr_build
@@ -77,7 +82,7 @@ stages:
   - job: SanityTests
     continueOnError: false
     steps:
-    - template: /eng/pipeline/python/templates/setup-venv.yml@DevCentral/ni-central
+    - template: /eng/pipeline/python/templates/setup-venv.yml@Tools
       parameters:
         venvName: test_venv
         ${{ if ne(parameters.rtos_oetest_locked_pr_build, ' ') }}:
