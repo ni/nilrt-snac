@@ -135,7 +135,6 @@ mkinstalldirs :
 	mkdir -p "$(DESTDIR)$(libdir)/$(PACKAGE)"
 	mkdir -p "$(DESTDIR)$(sbindir)"
 	mkdir -p "$(DESTDIR)$(nirococonfdir)"
-	mkdir -p --mode=0750 "$(DESTDIR)/var/log/nilrt-snac"
 
 
 uninstall :
