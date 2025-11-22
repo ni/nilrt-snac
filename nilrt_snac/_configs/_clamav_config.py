@@ -1,4 +1,5 @@
 import argparse
+import os
 import pathlib
 
 from nilrt_snac._configs._base_config import _BaseConfig
@@ -34,15 +35,21 @@ class _ClamAVConfig(_BaseConfig):
         if installed_packages:
             print("Verifying clamav configuration...")
             valid = True
+            
+            # Check DNS configuration (critical for freshclam)
+            resolv_conf_path = "/var/run/resolv.conf"
+            if not os.path.exists(resolv_conf_path) or os.path.getsize(resolv_conf_path) == 0:
+                logger.error(f"DNS not configured: {resolv_conf_path} is empty or missing")
+                logger.error("freshclam will fail without DNS. Configure network/DNS before running freshclam.")
+                valid = False
 
-            # Check clamd configuration file
-            clamd_config = _ConfigFile(self.clamd_config_path)
-            if not clamd_config.exists():
-                logger.error(f"ClamAV daemon config file missing: {self.clamd_config_path}")
-                valid = False
-            elif pathlib.Path(self.clamd_config_path).stat().st_size == 0:
-                logger.error(f"ClamAV daemon config file is empty: {self.clamd_config_path}")
-                valid = False
+            # Check clamd configuration file (only if daemon package is installed)
+            if self._opkg_helper.is_installed("clamav-daemon"):
+                clamd_config = _ConfigFile(self.clamd_config_path)
+                if not clamd_config.exists():
+                    logger.warning(f"ClamAV daemon config file missing: {self.clamd_config_path}")
+                elif pathlib.Path(self.clamd_config_path).stat().st_size == 0:
+                    logger.warning(f"ClamAV daemon config file is empty: {self.clamd_config_path}")
 
             # Check freshclam configuration file
             freshclam_config = _ConfigFile(self.freshclam_config_path)
