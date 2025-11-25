@@ -1,4 +1,5 @@
 import argparse
+import os
 import pathlib
 
 from nilrt_snac._configs._base_config import _BaseConfig
@@ -16,6 +17,7 @@ class _ClamAVConfig(_BaseConfig):
         self.clamd_config_path = "/etc/clamav/clamd.conf"
         self.freshclam_config_path = "/etc/clamav/freshclam.conf"
         self.virus_db_path = "/var/lib/clamav/"
+        self.resolv_conf_path = "/var/run/resolv.conf"
         self.package_names = ["clamav", "clamav-daemon", "clamav-freshclam"]
         self._opkg_helper = opkg_helper
 
@@ -34,15 +36,21 @@ class _ClamAVConfig(_BaseConfig):
         if installed_packages:
             print("Verifying clamav configuration...")
             valid = True
+            
+            if self._opkg_helper.is_installed("clamav-freshclam"):
+                # Check DNS configuration (critical for freshclam)
+                if not os.path.exists(self.resolv_conf_path) or os.path.getsize(self.resolv_conf_path) == 0:
+                    logger.error(f"DNS not configured: {self.resolv_conf_path} is empty or missing")
+                    logger.error("freshclam will fail without DNS. Configure network/DNS before running freshclam.")
+                    valid = False
 
-            # Check clamd configuration file
-            clamd_config = _ConfigFile(self.clamd_config_path)
-            if not clamd_config.exists():
-                logger.error(f"ClamAV daemon config file missing: {self.clamd_config_path}")
-                valid = False
-            elif pathlib.Path(self.clamd_config_path).stat().st_size == 0:
-                logger.error(f"ClamAV daemon config file is empty: {self.clamd_config_path}")
-                valid = False
+            # Check clamd configuration file (only if daemon package is installed)
+            if self._opkg_helper.is_installed("clamav-daemon"):
+                clamd_config = _ConfigFile(self.clamd_config_path)
+                if not clamd_config.exists():
+                    logger.info(f"ClamAV daemon config file missing: {self.clamd_config_path}")
+                elif pathlib.Path(self.clamd_config_path).stat().st_size == 0:
+                    logger.info(f"ClamAV daemon config file is empty: {self.clamd_config_path}")
 
             # Check freshclam configuration file
             freshclam_config = _ConfigFile(self.freshclam_config_path)
