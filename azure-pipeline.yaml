@@ -1,8 +1,4 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
+# Run sanity checks for nilrt-snac PRs
 resources:
   repositories:
   - repository: DevCentral/ni-central
@@ -44,11 +40,13 @@ pool:
   - agent.os -equals Windows_NT
   - python3
 
-stages:
-- stage: BuildInformation
-  jobs:
-  - job: BuildInformation
-    steps:
+# Only allow one instance of this pipeline to run at a time to avoid resource contention issues with the targets used in testing.
+lockBehavior: sequential
+
+jobs:
+- job: SanityTests
+  continueOnError: false
+  steps:
     - powershell: |
         if ("$(Build.Reason)" -eq "Manual") {
           Write-Host "The pipeline was triggered manually."
@@ -58,6 +56,7 @@ stages:
           Write-Host "The pipeline was triggered by another reason: $(Build.Reason)"
         }
       displayName: CheckTriggerReason
+
     - powershell: |
         echo "Hello, world!"
         echo "Build number: $(Build.BuildNumber)" 
@@ -73,15 +72,38 @@ stages:
         }
       displayName: PrintBuildInformation
 
-- stage: SanityTests
-  # Only allow one instance of this stage to run at a time to avoid resource contention issues with the targets used in testing.
-  lockBehavior: sequential
-  dependsOn:
-  - BuildInformation
-  jobs:
-  - job: SanityTests
-    continueOnError: false
-    steps:
+    # Lists installed software & versions (registry + winget/choco if present)
+    - powershell: |
+        Write-Host "=== Installed Programs (Registry: 64-bit & 32-bit) ==="
+        $paths = @(
+          'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',           # 64-bit
+          'HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*' # 32-bit
+        )
+        $items = foreach ($p in $paths) {
+          Get-ItemProperty -Path $p -ErrorAction SilentlyContinue |
+            Where-Object { $_.DisplayName } |
+            Select-Object @{n='Name';e={$_.DisplayName}},
+                          @{n='Version';e={$_.DisplayVersion}},
+                          @{n='Publisher';e={$_.Publisher}},
+                          @{n='InstallLocation';e={$_.InstallLocation}}
+        }
+        $items | Sort-Object Name | Format-Table -AutoSize
+
+        Write-Host "`n=== Winget packages (if available) ==="
+        if (Get-Command winget -ErrorAction SilentlyContinue) {
+          winget list --accept-source-agreements
+        } else {
+          Write-Host "winget not available on this agent."
+        }
+
+        Write-Host "`n=== Chocolatey packages (if available) ==="
+        if (Get-Command choco -ErrorAction SilentlyContinue) {
+          choco list --local-only
+        } else {
+          Write-Host "Chocolatey not available on this agent."
+        }
+      displayName: "Windows: Display installed software"
+
     - template: /eng/pipeline/python/templates/setup-venv.yml@Tools
       parameters:
         venvName: test_venv
