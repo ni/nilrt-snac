@@ -17,7 +17,7 @@ class _ClamAVConfig(_BaseConfig):
         self.clamd_config_path = "/etc/clamav/clamd.conf"
         self.freshclam_config_path = "/etc/clamav/freshclam.conf"
         self.virus_db_path = "/var/lib/clamav/"
-        self.resolv_conf_path = "/var/run/resolv.conf"
+        self.resolv_conf_path = "/etc/resolv.conf"
         self.package_names = ["clamav", "clamav-daemon", "clamav-freshclam"]
         self._opkg_helper = opkg_helper
 
