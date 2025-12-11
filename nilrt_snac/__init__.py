@@ -4,7 +4,7 @@ import logging
 import pathlib
 from enum import IntEnum
 
-__version__ = "3.0.0"
+__version__ = "3.1.0"
 
 SNAC_DATA_DIR = pathlib.Path(__file__).resolve().parents[3] / "share" / "nilrt-snac"
 
