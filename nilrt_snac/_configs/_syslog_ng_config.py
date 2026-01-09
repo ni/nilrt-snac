@@ -26,7 +26,7 @@ class _SyslogConfig(_BaseConfig):
             _cmd(
                 "nirtcfg",
                 "--set",
-                'section=SystemSettings,token=PersistentLogs.enabled,value="True"',
+                "section=SystemSettings,token=PersistentLogs.enabled,value=True",
             )
 
             # Restart syslog-ng service
