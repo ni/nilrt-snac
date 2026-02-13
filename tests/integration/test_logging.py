@@ -112,7 +112,7 @@ def _check_log_footer(log_content: str) -> None:
 def test_verify_creates_log(nilrt_snac_cli):
     """Test that 'verify' command creates a log file."""
     # Run verify command
-    proc = nilrt_snac_cli.run(["verify"])
+    proc = nilrt_snac_cli.run(["verify", "--log"])
 
     # Check that log location was printed
     assert "Log saved to:" in proc.stdout, "verify command did not print log location"
@@ -138,7 +138,7 @@ def test_verify_creates_log(nilrt_snac_cli):
 def test_verify_log_permissions(nilrt_snac_cli):
     """Test that log files have correct permissions."""
     # Run verify command
-    proc = nilrt_snac_cli.run(["verify"])
+    proc = nilrt_snac_cli.run(["verify", "--log"])
 
     # Get the log file
     log_path = _get_latest_log_file("verify")
@@ -151,7 +151,7 @@ def test_verify_log_permissions(nilrt_snac_cli):
 def test_verify_log_content(nilrt_snac_cli):
     """Test that log files contain expected content."""
     # Run verify command with verbose flag to get more output
-    proc = nilrt_snac_cli.run(["verify", "-v"])
+    proc = nilrt_snac_cli.run(["verify", "--log", "-v"])
 
     # Get the log file
     log_path = _get_latest_log_file("verify")
@@ -219,7 +219,7 @@ def test_configure_dry_run_creates_log(nilrt_snac_cli):
 def test_log_directory_permissions(nilrt_snac_cli):
     """Test that log directory has correct permissions."""
     # Run a command to ensure directory exists
-    proc = nilrt_snac_cli.run(["verify"])
+    proc = nilrt_snac_cli.run(["verify", "--log"])
 
     # Check directory exists
     assert LOG_DIR.exists(), f"Log directory does not exist: {LOG_DIR}"
@@ -246,7 +246,7 @@ def test_log_directory_permissions(nilrt_snac_cli):
 def test_log_captures_stderr(nilrt_snac_cli):
     """Test that log captures stderr output (warnings, errors)."""
     # Run verify command (it outputs warnings to stderr)
-    proc = nilrt_snac_cli.run(["verify"])
+    proc = nilrt_snac_cli.run(["verify", "--log"])
 
     # Get the log file
     log_path = _get_latest_log_file("verify")
@@ -266,8 +266,8 @@ def test_log_captures_stderr(nilrt_snac_cli):
 def test_multiple_logs_unique_filenames(nilrt_snac_cli):
     """Test that multiple runs create separate log files with unique names."""
     # Run verify twice in quick succession
-    proc1 = nilrt_snac_cli.run(["verify"])
-    proc2 = nilrt_snac_cli.run(["verify"])
+    proc1 = nilrt_snac_cli.run(["verify", "--log"])
+    proc2 = nilrt_snac_cli.run(["verify", "--log"])
 
     # Extract log paths
     match1 = re.search(r"Log saved to: (.+)", proc1.stdout)
@@ -290,7 +290,7 @@ def test_multiple_logs_unique_filenames(nilrt_snac_cli):
 def test_log_captures_python_logger_output(nilrt_snac_cli):
     """Test that log captures Python logging module output (logger.info, logger.warning, etc)."""
     # Run verify command with verbose flag to trigger debug logging
-    proc = nilrt_snac_cli.run(["verify", "-v"])
+    proc = nilrt_snac_cli.run(["verify", "--log", "-v"])
 
     # Get the log file
     log_path = _get_latest_log_file("verify")
