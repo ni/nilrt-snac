@@ -125,10 +125,12 @@ def _generate_log_filename(command: str) -> str:
         command: The command name (configure or verify)
 
     Returns:
-        Filename string like 'configure-20251015-143022.log'
+        Filename string like 'configure-20251015-143022-123456.log'
+        The timestamp includes microseconds to ensure uniqueness.
     """
     # If NTP is not synchronized, this may produce a date/time portion that is not consistent
-    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    # Include microseconds to prevent collisions from rapid successive executions
+    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S-%f")
     return f"{command}-{timestamp}.log"
 
 

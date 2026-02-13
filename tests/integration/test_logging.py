@@ -141,9 +141,9 @@ def test_verify_creates_log(nilrt_snac_cli):
     # Verify log file is in correct directory
     assert log_path.parent == LOG_DIR, f"Log file in wrong directory: {log_path.parent}"
 
-    # Verify filename format
+    # Verify filename format (with microseconds)
     assert re.match(
-        r"verify-\d{8}-\d{6}\.log", log_path.name
+        r"verify-\d{8}-\d{6}-\d{6}\.log", log_path.name
     ), f"Log filename has incorrect format: {log_path.name}"
 
 
@@ -222,9 +222,9 @@ def test_configure_dry_run_creates_log(nilrt_snac_cli):
     # Verify log file exists
     assert log_path.exists(), f"Log file does not exist: {log_path}"
 
-    # Verify filename format
+    # Verify filename format (with microseconds)
     assert re.match(
-        r"configure-\d{8}-\d{6}\.log", log_path.name
+        r"configure-\d{8}-\d{6}-\d{6}\.log", log_path.name
     ), f"Log filename has incorrect format: {log_path.name}"
 
 
