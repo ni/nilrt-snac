@@ -30,9 +30,22 @@ def _get_latest_log_file(command: str) -> Path:
     Returns:
         Path to the latest log file
     """
+    # Check if log directory exists first
+    if not LOG_DIR.exists():
+        pytest.fail(
+            f"Log directory does not exist: {LOG_DIR}. "
+            f"The command may not have run or logging was disabled."
+        )
+    
     log_files = list(LOG_DIR.glob(f"{command}-*.log"))
     if not log_files:
-        pytest.fail(f"No log files found for command: {command}")
+        # Provide helpful diagnostic information
+        hint = ""
+        if command == "verify":
+            hint = " (Note: 'verify' requires --log flag to enable logging)"
+        pytest.fail(
+            f"No log files found for command: {command} in {LOG_DIR}.{hint}"
+        )
     return max(log_files, key=lambda p: p.stat().st_mtime)
 
 
