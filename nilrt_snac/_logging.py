@@ -8,6 +8,7 @@ creating audit logs with proper permissions.
 import os
 import sys
 import grp
+import time
 import logging
 import datetime
 import platform
@@ -90,18 +91,31 @@ class _TeeStream:
 
 
 def _create_log_directory() -> None:
-    """Create the log directory with proper permissions."""
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    """Create the log directory with proper permissions.
+    
+    Raises:
+        SNACError: If directory creation fails due to permissions or other errors
+    """
+    try:
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+    except PermissionError as e:
+        raise SNACError(
+            f"Cannot create log directory {LOG_DIR}: Permission denied. "
+            f"Root privileges required.",
+            Errors.EX_USAGE
+        ) from e
+    except OSError as e:
+        raise SNACError(
+            f"Failed to create log directory {LOG_DIR}: {e}",
+            Errors.EX_ERROR
+        ) from e
 
     # Set directory permissions
     os.chmod(LOG_DIR, DIR_PERMISSIONS)
 
     # Set group ownership to 'adm' if it exists
-    try:
-        adm_gid = grp.getgrnam(LOG_GROUP).gr_gid
-        os.chown(LOG_DIR, -1, adm_gid)  # -1 means don't change owner
-    except KeyError:
-        logger.warning(f"Group '{LOG_GROUP}' not found. Log directory will use default group.")
+    adm_gid = grp.getgrnam(LOG_GROUP).gr_gid
+    os.chown(LOG_DIR, -1, adm_gid)  # -1 means don't change owner
 
 
 def _generate_log_filename(command: str) -> str:
@@ -257,11 +271,30 @@ def logging_context(command: str, args: List[str]):
     original_handler_streams: List[tuple] = []  # List of (handler, original_stream) tuples
 
     try:
-        # Open log file with proper permissions
+        # Open log file with proper permissions with retry logic
         # We use os.open with specific mode, then wrap with TextIO
-        fd = os.open(
-            log_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, LOG_PERMISSIONS  # Fail if exists
-        )
+        fd = None
+        for attempt in range(1, 7):  # Try 6 times (initial + 5 retries)
+            try:
+                fd = os.open(
+                    log_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, LOG_PERMISSIONS  # Fail if exists
+                )
+                break  # Successfully opened
+            except FileExistsError:
+                if attempt < 6:
+                    logger.debug(f"Log file exists, attempt {attempt}/6, retrying...")
+                    time.sleep(1)
+                else:
+                    # All 6 attempts failed
+                    logger.error(
+                        f"Log file still exists after 5 retries: {log_path}. "
+                        "This may indicate rapid successive executions or timestamp collision."
+                    )
+                    raise SNACError(
+                        f"Cannot create log file (already exists): {log_path}",
+                        Errors.EX_ERROR
+                    )
+        
         log_file = os.fdopen(fd, "w", encoding="utf-8")
 
         # Set group ownership
@@ -270,6 +303,8 @@ def logging_context(command: str, args: List[str]):
             os.fchown(fd, -1, adm_gid)
         except KeyError:
             logger.warning(f"Group '{LOG_GROUP}' not found. Log file will use default group.")
+        except (PermissionError, OSError) as e:
+            logger.warning(f"Could not set group ownership on log file: {e}")
 
         # Write header
         _write_log_header(log_file, command, args)
@@ -290,7 +325,6 @@ def logging_context(command: str, args: List[str]):
 
         # Yield to the caller
         yield
-
     finally:
         # Restore original streams for all logging handlers
         for handler, original_stream in original_handler_streams:
