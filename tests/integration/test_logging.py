@@ -164,7 +164,7 @@ def test_verify_log_permissions(nilrt_snac_cli):
 def test_verify_log_content(nilrt_snac_cli):
     """Test that log files contain expected content."""
     # Run verify command with verbose flag to get more output
-    proc = nilrt_snac_cli.run(["verify", "--log", "-v"])
+    proc = nilrt_snac_cli.run(["-v", "verify", "--log"])
 
     # Get the log file
     log_path = _get_latest_log_file("verify")
@@ -303,7 +303,7 @@ def test_multiple_logs_unique_filenames(nilrt_snac_cli):
 def test_log_captures_python_logger_output(nilrt_snac_cli):
     """Test that log captures Python logging module output (logger.info, logger.warning, etc)."""
     # Run verify command with verbose flag to trigger debug logging
-    proc = nilrt_snac_cli.run(["verify", "--log", "-v"])
+    proc = nilrt_snac_cli.run(["-v", "verify", "--log"])
 
     # Get the log file
     log_path = _get_latest_log_file("verify")
