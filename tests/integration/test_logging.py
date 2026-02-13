@@ -209,7 +209,7 @@ def test_verify_no_log_flag(nilrt_snac_cli):
 def test_configure_dry_run_creates_log(nilrt_snac_cli):
     """Test that configure --dry-run creates a log file."""
     # Run configure in dry-run mode with -y to avoid interactive prompt
-    proc = nilrt_snac_cli.run(["configure", "--dry-run", "-y"])
+    proc = nilrt_snac_cli.run(["--dry-run", "configure", "-y", "--audit-email", "test@example.com"])
 
     # Check that log location was printed
     assert "Log saved to:" in proc.stdout, "configure --dry-run did not print log location"
