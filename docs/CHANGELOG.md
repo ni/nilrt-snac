@@ -8,9 +8,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [3.1.1] - 2025-03-27
+
+Release corresponding to the LV 2026Q2 / NILRT 11.5 release.
+
+Includes github changes through PR #87.
+
+
+# Added
+
+* Added more helpful failure messages when common OS issues occur during file operations. (#86)
+
+
+### Changed
+
+* The nilrt-snac tool will now attempt to create an execution log, to help mitigate timestamp collisions in the file name. (#86)
+* Syslog will now switch to the uid/gid of ``root:adm`` when performing log operations. This also fixes a warning about insecure log directory permissions issued during boot. (#87)
+
+
 ### Fixed
 
-* Fix "NILRT SNAC errors during boot; invalid PersistentLogs nirtini token value" AB#3698523 (#85)
+* Fixed a duplicate quote issue in some SNAC configuration settings which caused ``nirtcfg`` errors when parsing the ``ni-rt.ini`` file. (#85)
+
 
 ## [3.1.0] - 2025-12-11
 
