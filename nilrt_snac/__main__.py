@@ -23,6 +23,13 @@ This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 """
 
+WARNING_MESSAGE: str = """\
+!! ================================ WARNING ================================= !!
+!!   Running this tool will irreversibly alter the state of your system.      !!
+!!   If you are accessing your system using WiFi, you will lose connection.   !!
+!! ========================================================================== !!
+"""
+
 
 def _get_enabled_modules(config_file_path: Path = Path("/etc/snac/snac.conf")) -> Dict[str, bool]:
     """Read the config file and return a dict of module enabled states. Strict validation and error reporting."""
@@ -58,8 +65,7 @@ def _get_enabled_modules(config_file_path: Path = Path("/etc/snac/snac.conf")) -
 
 def _configure(args: argparse.Namespace) -> int:
     """Configure SNAC mode."""
-    logger.warning("!! Running this tool will irreversibly alter the state of your system.    !!")
-    logger.warning("!! If you are accessing your system using WiFi, you will lose connection. !!")
+    sys.stderr.write(WARNING_MESSAGE)
 
     if args.yes:
         consent = "y"
