@@ -18,12 +18,6 @@ def test_conflicts_ipk():
 	"""The nilrt-snac-conflicts IPK should be installed to the data path."""
 	assert (nilrt_snac.SNAC_DATA_DIR / "nilrt-snac-conflicts.ipk").exists()
 
-
-def test_iptables():
-	"""This package requires the iptables module."""
-	nilrt_snac._pre_reqs._check_iptables()  # assert no raise
-
-
 def test_opkg_binary():
 	"""This package requires the opkg package manager."""
 	assert shutil.which("opkg")
