@@ -25,14 +25,8 @@ variables:
   value: $(Agent.TempDirectory)/compile_mobilize_plan.yaml
 - template: /src/rtos/pipeline/version.yml@DevCentral/ni-central
 
-pr:
-  paths:
-    exclude:
-    - .github/*
-    - .vs/*
-  branches:
-    include:
-    - master
+# Temporarily disabled while backend test infrastructure is repaired.
+pr: none
 
 pool: 
   name: Drivers-NIBuildFarm-RFMIBUILD
@@ -45,6 +39,8 @@ lockBehavior: sequential
 
 jobs:
 - job: SanityTests
+  # Temporary backstop for Azure DevOps branch-policy validation.
+  condition: false
   continueOnError: false
   steps:
     - powershell: |
