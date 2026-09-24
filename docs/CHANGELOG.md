@@ -9,14 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
-## [3.1.1] - 2025-03-27
+## [3.2.0] - 2026-09-24
+
+Release corresponding to the LV 2026Q4 / NILRT 11.7 release.
+
+Includes github changes through PR #88.
+
+
+### Changed
+
+* ``nilrt-snac`` will no longer check to see if the ``iptables`` kernel module is loaded, as a condition of configuring the system. (#88)
+
+
+## [3.1.1] - 2026-03-27
 
 Release corresponding to the LV 2026Q2 / NILRT 11.5 release.
 
 Includes github changes through PR #87.
 
 
-# Added
+### Added
 
 * Added more helpful failure messages when common OS issues occur during file operations. (#86)
 
