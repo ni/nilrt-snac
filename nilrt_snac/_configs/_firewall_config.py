@@ -1,5 +1,6 @@
 import argparse
 import subprocess
+import time
 
 from nilrt_snac._configs._base_config import _BaseConfig
 from nilrt_snac._logging import run_with_logging
@@ -49,6 +50,31 @@ def _check_service_info(service: str, Q: str, expected: str) -> bool:
     if expected == actual:
         return True
     logger.error(f"ERROR: service {service} {Q}: expected {expected}, observed {actual}")
+    return False
+
+
+def _firewalld_is_running(timeout: float = 2) -> bool:
+    try:
+        result = subprocess.run(
+            ["firewall-cmd", "--state"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            check=False,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired:
+        return False
+    return result.returncode == 0 and result.stdout.strip() == "running"
+
+
+def _wait_for_firewalld() -> bool:
+    deadline = time.monotonic() + 30
+    while time.monotonic() < deadline:
+        remaining = deadline - time.monotonic()
+        if _firewalld_is_running(timeout=min(2, remaining)):
+            return True
+        time.sleep(min(1, max(0, deadline - time.monotonic())))
     return False
 
 
@@ -149,6 +175,17 @@ class _FirewallConfig(_BaseConfig):
             "--add-service=salt-master",
         )
 
+        run_with_logging(
+            "nirtcfg",
+            "--set",
+            "section=SystemSettings,token=firewall.enabled,value=True",
+            check=True,
+        )
+        if not _firewalld_is_running():
+            run_with_logging("/etc/init.d/firewalld", "start", check=True)
+            if not _wait_for_firewalld():
+                raise RuntimeError("firewalld did not become available after starting")
+
         _cmd("--reload")
 
     def verify(self, args: argparse.Namespace) -> bool:
@@ -165,6 +202,13 @@ class _FirewallConfig(_BaseConfig):
             _cmd("--check-config")
         except FileNotFoundError:
             logger.error(f"MISSING: firewall-cmd")
+            valid = False
+
+        firewall_enabled = subprocess.getoutput(
+            "nirtcfg --get section=SystemSettings,token=firewall.enabled,value=false"
+        )
+        if firewall_enabled.strip().lower() != "true":
+            logger.error("MISSING: SystemSettings firewall.enabled is not True")
             valid = False
 
         valid = all(
