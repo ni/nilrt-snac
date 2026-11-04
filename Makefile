@@ -42,7 +42,7 @@ SRC_FILES = \
 	src/nilrt-snac-conflicts/control \
 	src/ni-wireguard-labview/ni-wireguard-labview.initd \
 	src/ni-wireguard-labview/wglv0.conf \
-	src/firewalld/services/ni-rpc-server.xml \
+	src/firewalld/services/ni-orb-rpc-server.xml \
 	src/snac.conf \
 	src/nilrt-snac \
 
@@ -110,8 +110,8 @@ install : all mkinstalldirs $(DIST_FILES)
 
 	# firewall configuration pieces
 	install --mode=0644 \
-		src/firewalld/services/ni-rpc-server.xml \
-		"$(DESTDIR)/usr/lib/firewalld/services/ni-rpc-server.xml"
+		src/firewalld/services/ni-orb-rpc-server.xml \
+		"$(DESTDIR)/usr/lib/firewalld/services/ni-orb-rpc-server.xml"
 	install --mode=0644 \
 		src/x-niroco-static-port.ini \
 		"$(DESTDIR)$(nirococonfdir)"
@@ -151,7 +151,7 @@ uninstall :
 	# files
 	rm -vf "$(DESTDIR)/etc/init.d/ni-wireguard-labview"
 	rm -vf "$(DESTDIR)/etc/wireguard"/wglv0.*
-	rm -vf "$(DESTDIR)/usr/lib/firewalld/services/ni-rpc-server.xml"
+	rm -vf "$(DESTDIR)/usr/lib/firewalld/services/ni-orb-rpc-server.xml"
 	rm -vf "$(DESTDIR)$(sbindir)/nilrt-snac"
 	rm -vf "$(DESTDIR)$(nirococonfdir)/x-niroco-static-port.ini"
 	rm -vf "$(DESTDIR)$(docdir)/$(PACKAGE)/snac.conf.example"

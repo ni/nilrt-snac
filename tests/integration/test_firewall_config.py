@@ -9,7 +9,7 @@ from unittest.mock import patch
 from nilrt_snac._configs import _firewall_config
 
 
-def test_configure_allows_ni_rpc_server():
+def test_configure_allows_ni_orb_rpc_server():
     config = _firewall_config._FirewallConfig()
     calls = []
     system_calls = []
@@ -44,7 +44,7 @@ def test_configure_allows_ni_rpc_server():
         "--add-service=ni-labview-viserver",
         "--add-service=ni-logos-xt",
         "--add-service=ni-mxs",
-        "--add-service=ni-rpc-server",
+        "--add-service=ni-orb-rpc-server",
         "--add-service=ni-service-locator",
     ) in calls
     assert not any("--add-rich-rule=" in arg for call in calls for arg in call)
@@ -56,18 +56,18 @@ def test_configure_allows_ni_rpc_server():
 
     test_path = Path(__file__).resolve()
     source_definition = (
-        test_path.parents[2] / "src/firewalld/services/ni-rpc-server.xml"
+        test_path.parents[2] / "src/firewalld/services/ni-orb-rpc-server.xml"
     )
     if source_definition.is_file():
         service_definition = source_definition
     else:
         service_definition = next(
             (
-                parent / "usr/lib/firewalld/services/ni-rpc-server.xml"
+                parent / "usr/lib/firewalld/services/ni-orb-rpc-server.xml"
                 for parent in test_path.parents
-                if (parent / "usr/lib/firewalld/services/ni-rpc-server.xml").is_file()
+                if (parent / "usr/lib/firewalld/services/ni-orb-rpc-server.xml").is_file()
             ),
-            Path("/usr/lib/firewalld/services/ni-rpc-server.xml"),
+            Path("/usr/lib/firewalld/services/ni-orb-rpc-server.xml"),
         )
     service = ET.parse(service_definition).getroot()
     assert service.find("./port").attrib == {"protocol": "tcp", "port": "43973"}
