@@ -174,9 +174,11 @@ class _FirewallConfig(_BaseConfig):
                 _check_target("public-in", "CONTINUE"),
                 _check_target("public-out"),
                 _check_service("--policy=work-in", "ni-labview-realtime"),
+                _check_service("--policy=work-in", "ni-rpc-server"),
                 _check_service("--policy=public-in", "ni-labview-realtime", "no"),
                 _check_service("--zone=public", "ni-labview-realtime", "no"),
                 _check_service_info("ni-labview-realtime", "--get-ports", "3079/tcp"),
+                _check_service_info("ni-rpc-server", "--get-ports", "43973/tcp"),
             ]
         )
 
