@@ -211,7 +211,7 @@ class _FirewallConfig(_BaseConfig):
             logger.error("MISSING: SystemSettings firewall.enabled is not True")
             valid = False
 
-        valid = all(
+        valid &= all(
             [
                 _check_target("work-in", "CONTINUE"),
                 _check_target("work-out"),
