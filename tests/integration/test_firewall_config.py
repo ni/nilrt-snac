@@ -1,12 +1,44 @@
 """Tests for firewalld configuration behavior."""
 
 import argparse
+import logging
 import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from unittest.mock import patch
 
+from nilrt_snac import opkg
 from nilrt_snac._configs import _firewall_config
+
+
+def test_configure_dry_run_logs_package_installs(caplog):
+    config = _firewall_config._FirewallConfig()
+    packages = [
+        "firewalld",
+        "firewalld-offline-cmd",
+        "firewalld-log-rotate",
+        "ni-firewalld-servicedefs",
+    ]
+    caplog.set_level(logging.INFO, logger="nilrt_snac")
+
+    with (
+        patch.object(config._opkg_helper, "_dry_run", True, create=True),
+        patch.object(config._opkg_helper, "_installed_packages", []),
+        patch.object(opkg, "run_with_logging") as package_command,
+        patch.object(_firewall_config, "_offlinecmd") as offlinecmd,
+        patch.object(_firewall_config, "_cmd") as cmd,
+        patch.object(_firewall_config, "run_with_logging") as system_command,
+    ):
+        config.configure(argparse.Namespace(dry_run=True))
+
+        assert config._opkg_helper._installed_packages == packages
+        assert caplog.messages == [
+            f"Installing IPK: {package}" for package in packages
+        ]
+        package_command.assert_not_called()
+        offlinecmd.assert_not_called()
+        cmd.assert_not_called()
+        system_command.assert_not_called()
 
 
 def test_configure_allows_ni_orb_rpc_server():

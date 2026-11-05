@@ -46,6 +46,7 @@ class OpkgHelper:  # noqa: D101 - Missing docstring in public class (auto-genera
         self, package: str, force_reinstall: bool = False
     ) -> None:
         if not self.is_installed(package):
+            logger.info(f"Installing IPK: {package}")
             cmd = ["opkg", "install"]
             if force_reinstall:
                 cmd.append("--force-reinstall")
