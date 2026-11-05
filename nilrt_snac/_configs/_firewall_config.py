@@ -86,14 +86,15 @@ class _FirewallConfig(_BaseConfig):
     def configure(self, args: argparse.Namespace) -> None:
         print("Configuring firewall...")
         dry_run: bool = args.dry_run
-        if dry_run:
-            return
 
         # nftables installed via deps
         self._opkg_helper.install("firewalld")
         self._opkg_helper.install("firewalld-offline-cmd")
         self._opkg_helper.install("firewalld-log-rotate")
         self._opkg_helper.install("ni-firewalld-servicedefs")
+
+        if dry_run:
+            return
 
         _offlinecmd("--reset-to-defaults")
 
