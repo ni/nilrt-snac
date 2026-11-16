@@ -5,7 +5,7 @@ import textwrap
 
 from nilrt_snac import logger
 from nilrt_snac._configs._base_config import _BaseConfig
-from nilrt_snac._configs._config_file import _ConfigFile
+from nilrt_snac._configs._config_file import EqualsDelimitedConfigFile, _ConfigFile
 from nilrt_snac._logging import run_with_logging
 from nilrt_snac.opkg import opkg_helper
 
@@ -34,7 +34,7 @@ class _WireguardConfig(_BaseConfig):
 
     def configure(self, args: argparse.Namespace) -> None:
         print("Installing wireguard-tools...")
-        config_file = _ConfigFile(self._sysconnf_path / "wglv0.conf")
+        config_file = EqualsDelimitedConfigFile(self._sysconnf_path / "wglv0.conf")
         private_key = _ConfigFile(self._sysconnf_path / "wglv0.privatekey")
         public_key = _ConfigFile(self._sysconnf_path / "wglv0.publickey")
         ifplug_conf = _ConfigFile("/etc/ifplugd/ifplugd.conf")
@@ -48,11 +48,19 @@ class _WireguardConfig(_BaseConfig):
         if not ifplug_conf.contains("^ARGS_wglv0="):
             ifplug_conf.add(_IFPLUGD_BLOCK)
 
-        if not config_file.contains("^PrivateKey = .+") and not private_key.exists():
-            logger.debug("Generating wireguard keypair....")
+        # The PostUp hook in wglv0.conf loads the private key from its key file,
+        # so that file must always be populated. Seed it from an inline
+        # PrivateKey, if there is one, so that the hook doesn't replace it.
+        if not private_key.exists():
+            priv_key = config_file.get("PrivateKey")
+            if priv_key:
+                logger.debug("Writing inline wireguard PrivateKey to key files....")
+            else:
+                logger.debug("Generating wireguard keypair....")
             if not dry_run:
-                result = subprocess.run(["wg", "genkey"], stdout=subprocess.PIPE, check=True)
-                priv_key = result.stdout.decode().strip()
+                if not priv_key:
+                    result = subprocess.run(["wg", "genkey"], stdout=subprocess.PIPE, check=True)
+                    priv_key = result.stdout.decode().strip()
                 private_key.add(priv_key)
                 private_key.chmod(0o600)
                 result = subprocess.run(
