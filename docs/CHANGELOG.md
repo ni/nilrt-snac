@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+### Fixed
+
+* ``nilrt-snac configure`` no longer appends a duplicate ``ARGS_wglv0`` block to ``/etc/ifplugd/ifplugd.conf`` on every run, and collapses duplicates left by earlier versions. (#94)
+
+
 ## [3.2.0] - 2026-09-24
 
 Release corresponding to the LV 2026Q4 / NILRT 11.7 release.
