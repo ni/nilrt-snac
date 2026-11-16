@@ -77,11 +77,13 @@ class _ConfigFile:
     def contains(self, key: str) -> bool:
         """Check if the configuration file contains the given key.
 
-        Args: key: RE pattern to search for in the configuration file.
+        Args: key: RE pattern to search for in the configuration file. The
+            pattern is matched in multiline mode, so ``^`` and ``$`` anchor
+            to the start and end of each line.
 
         Returns: True if the key is found, False otherwise.
         """
-        return bool(re.search(key, self._config))
+        return bool(re.search(key, self._config, flags=re.MULTILINE))
     
     def contains_exact(self, key: str) -> bool:
         """Check if the configuration file contains a line with the exact given key.
