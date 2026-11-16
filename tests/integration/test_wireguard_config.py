@@ -105,11 +105,18 @@ def test_configure_generates_keypair(fake_root):
     assert (wg_dir / "wglv0.conf").read_text() == WGLV0_CONF
 
 
-def test_configure_writes_inline_private_key_to_key_files(fake_root):
+@pytest.fixture(params=["", " # lab tunnel", "\t#comment"], ids=["bare", "comment", "tab-comment"])
+def inline_key_suffix(request):
+    return request.param
+
+
+def test_configure_writes_inline_private_key_to_key_files(fake_root, inline_key_suffix):
     config, ifplugd_conf, run = fake_root
     wg_dir = ifplugd_conf.parent.parent / "wireguard"
     inline_key = "aGVsbG8gd29ybGQgdGhpcyBpcyBhIHRlc3Qga2V5IQ="
-    conf = WGLV0_CONF.replace("[Interface]\n", f"[Interface]\nPrivateKey = {inline_key}\n")
+    conf = WGLV0_CONF.replace(
+        "[Interface]\n", f"[Interface]\nPrivateKey = {inline_key}{inline_key_suffix}\n"
+    )
     (wg_dir / "wglv0.conf").write_text(conf)
 
     _configure(config)
