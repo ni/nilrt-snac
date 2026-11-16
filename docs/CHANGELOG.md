@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 * ``nilrt-snac configure`` no longer appends a duplicate ``ARGS_wglv0`` block to ``/etc/ifplugd/ifplugd.conf`` on every run, and collapses duplicates left by earlier versions. (#94)
+* If ``/etc/wireguard/wglv0.conf`` sets ``PrivateKey`` inline and ``wglv0.privatekey`` doesn't exist, ``nilrt-snac configure`` writes the inline key to the key files instead of generating a new one, so the ``PostUp`` hook no longer replaces the inline key. (#94)
 
 
 ## [3.2.0] - 2026-09-24
