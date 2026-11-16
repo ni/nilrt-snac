@@ -52,7 +52,9 @@ class _WireguardConfig(_BaseConfig):
         # so that file must always be populated. Seed it from an inline
         # PrivateKey, if there is one, so that the hook doesn't replace it.
         if not private_key.exists():
-            priv_key = config_file.get("PrivateKey")
+            # WireGuard ignores everything after a '#', which never appears in
+            # a base64 key.
+            priv_key = config_file.get("PrivateKey").split("#", 1)[0].strip()
             if priv_key:
                 logger.debug("Writing inline wireguard PrivateKey to key files....")
             else:
