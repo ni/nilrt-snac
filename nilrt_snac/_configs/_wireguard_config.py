@@ -9,6 +9,22 @@ from nilrt_snac._configs._config_file import _ConfigFile
 from nilrt_snac._logging import run_with_logging
 from nilrt_snac.opkg import opkg_helper
 
+_IFPLUGD_BLOCK = textwrap.dedent(
+    """
+
+    # This assignment block is managed by the nilrt-snac package.
+    ARGS_wglv0="$ARGS --no-auto"
+    # endblock
+    """
+)
+# Matches one managed ifplugd block and the blank lines before it. Relies on
+# the MULTILINE flag that _ConfigFile.update() applies.
+_IFPLUGD_BLOCK_RE = (
+    r"(?:^\n)*# This assignment block is managed by the nilrt-snac package\.\n"
+    r"ARGS_wglv0=[^\n]*\n"
+    r"# endblock\n?"
+)
+
 
 class _WireguardConfig(_BaseConfig):
     def __init__(self):
@@ -26,17 +42,11 @@ class _WireguardConfig(_BaseConfig):
 
         self._opkg_helper.install("wireguard-tools")
 
-        if not ifplug_conf.contains("^ARGS_wglv0.*"):
-            ifplug_conf.add(
-                textwrap.dedent(
-                    """
-
-                    # This assignment block is managed by the nilrt-snac package.
-                    ARGS_wglv0="$ARGS --no-auto"
-                    # endblock
-                    """
-                )
-            )
+        # Earlier versions appended a new managed block on every run. Keep only
+        # the last one, which is the one ifplugd honors.
+        ifplug_conf.update(rf"(?:{_IFPLUGD_BLOCK_RE})(?=[\s\S]*{_IFPLUGD_BLOCK_RE})", "")
+        if not ifplug_conf.contains("^ARGS_wglv0="):
+            ifplug_conf.add(_IFPLUGD_BLOCK)
 
         if not config_file.contains("^PrivateKey = .+") and not private_key.exists():
             logger.debug("Generating wireguard keypair....")
@@ -95,7 +105,7 @@ class _WireguardConfig(_BaseConfig):
         if not public_key.exists():
             valid = False
             logger.error(f"MISSING: {public_key.path}")
-        if not ifplug_conf.contains("ARGS_wglv0=.*"):
+        if not ifplug_conf.contains("^ARGS_wglv0="):
             valid = False
-            logger.error(f"MISSING: 'ARGS_wglv0=.*' in {ifplug_conf.path}")
+            logger.error(f"MISSING: 'ARGS_wglv0=' in {ifplug_conf.path}")
         return valid
