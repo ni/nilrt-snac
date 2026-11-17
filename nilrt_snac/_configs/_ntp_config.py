@@ -1,4 +1,5 @@
 import argparse
+import re
 
 from nilrt_snac._configs._base_config import _BaseConfig
 from nilrt_snac._configs._config_file import _ConfigFile
@@ -6,6 +7,8 @@ from nilrt_snac._logging import run_with_logging
 
 from nilrt_snac import logger
 from nilrt_snac.opkg import opkg_helper
+
+_NI_NTP_SERVER_RE = re.escape("natinst.pool.ntp.org")
 
 
 class _NTPConfig(_BaseConfig):
@@ -20,8 +23,8 @@ class _NTPConfig(_BaseConfig):
         self._opkg_helper.install("ntp")
 
         logger.debug("Switching ntp servers to US mil.")
-        if config_file.contains("natinst.pool.ntp.org"):
-            config_file.update("^.*natinst.pool.ntp.org.*$", "")
+        if config_file.contains(_NI_NTP_SERVER_RE):
+            config_file.update(rf"^.*{_NI_NTP_SERVER_RE}.*$", "")
 
         if not config_file.contains_exact("server 0.us.pool.ntp.mil iburst maxpoll 16"):
             config_file.add("server 0.us.pool.ntp.mil iburst maxpoll 16")
@@ -41,7 +44,7 @@ class _NTPConfig(_BaseConfig):
         if not config_file.contains_exact("server 0.us.pool.ntp.mil iburst maxpoll 16"):
             valid = False
             logger.error("MISSING: designated ntp server and settings not found in config file")
-        if config_file.contains("natinst.pool.ntp.org"):
+        if config_file.contains(_NI_NTP_SERVER_RE):
             valid = False
             logger.error("FOUND: NI ntp server in config file")
         return valid
