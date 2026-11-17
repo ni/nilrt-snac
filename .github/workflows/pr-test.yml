@@ -2,6 +2,9 @@ name: PR Testing
 
 on: [pull_request]
 
+permissions:
+  contents: read
+
 jobs:
   make-workflows:
     runs-on: ubuntu-latest
